@@ -1,0 +1,35 @@
+{
+  "name": "fullora",
+  "version": "1.0.0",
+  "description": "Donation web app for Fullora's Shelter",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imahbub/fullora.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/imahbub/fullora/issues"
+  },
+  "homepage": "https://github.com/imahbub/fullora#readme",
+  "dependencies": {
+    "@astrojs/tailwind": "^6.0.2",
+    "@supabase/supabase-js": "^2.118.0",
+    "astro": "^5.18.2",
+    "canvas-confetti": "^1.9.4",
+    "lucide-astro": "^0.556.0",
+    "tailwindcss": "^3.4.19"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0"
+  }
+}

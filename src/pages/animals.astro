@@ -1,0 +1,170 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AnimalCard from '../components/AnimalCard.astro';
+import { DEMO_ANIMALS } from '../lib/supabase.js';
+---
+
+<Layout title="Meet Our Dogs & Cats — Fullora's Shelter">
+
+  <section class="py-12 sm:py-16 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 mb-4">
+        <span>🐾 Resident Directory</span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 dark:text-white tracking-tight">
+        Our Rescued Cats & Dogs
+      </h1>
+      <p class="mt-3 text-sm sm:text-base text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
+        Each one has a story of resilience. You can sponsor their monthly food and care, or fund urgent spaying and neutering surgery.
+      </p>
+
+      <!-- Filter Controls & Search -->
+      <div class="mt-8 max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2" id="filter-buttons">
+          <button 
+            type="button" 
+            onclick="window.filterAnimals('all')" 
+            class="filter-tab px-4 py-2 rounded-xl text-xs font-bold border border-emerald-600 bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 transition-all"
+            data-filter="all"
+          >
+            All Animals ({DEMO_ANIMALS.length})
+          </button>
+          <button 
+            type="button" 
+            onclick="window.filterAnimals('cat')" 
+            class="filter-tab px-4 py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-emerald-500 transition-all"
+            data-filter="cat"
+          >
+            🐱 Cats ({DEMO_ANIMALS.filter(a => a.species === 'cat').length})
+          </button>
+          <button 
+            type="button" 
+            onclick="window.filterAnimals('dog')" 
+            class="filter-tab px-4 py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-emerald-500 transition-all"
+            data-filter="dog"
+          >
+            🐶 Dogs ({DEMO_ANIMALS.filter(a => a.species === 'dog').length})
+          </button>
+          <button 
+            type="button" 
+            onclick="window.filterAnimals('needs_spay')" 
+            class="filter-tab px-4 py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-amber-500 transition-all"
+            data-filter="needs_spay"
+          >
+            ✂️ Needs Spaying
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-64">
+          <span class="absolute left-3.5 top-2.5 text-stone-400 text-xs">🔍</span>
+          <input 
+            type="text" 
+            id="animal-search" 
+            placeholder="Search by name..." 
+            oninput="window.searchAnimals(this.value)"
+            class="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs text-stone-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-hidden"
+          />
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Animals Grid -->
+  <section class="py-12 sm:py-16 bg-stone-50 dark:bg-stone-950 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div id="animals-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {DEMO_ANIMALS.map(animal => (
+          <div 
+            class="animal-item" 
+            data-species={animal.species} 
+            data-needs-spay={animal.needs_spay_neuter ? 'true' : 'false'}
+            data-name={animal.name.toLowerCase()}
+          >
+            <AnimalCard animal={animal} />
+          </div>
+        ))}
+      </div>
+
+      <!-- No Results State -->
+      <div id="no-animals-msg" class="hidden text-center py-16">
+        <div class="text-4xl mb-3">🐾</div>
+        <h3 class="text-lg font-bold text-stone-900 dark:text-white">No animals matched your search</h3>
+        <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">Try clearing your filters or search term.</p>
+        <button 
+          onclick="window.filterAnimals('all')"
+          class="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white"
+        >
+          Reset Filters
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+</Layout>
+
+<script is:inline>
+  let activeFilter = 'all';
+  let searchTerm = '';
+
+  window.filterAnimals = function(filter) {
+    activeFilter = filter;
+    
+    // Update tab styling
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      if (tab.getAttribute('data-filter') === filter) {
+        tab.classList.add('border-emerald-600', 'bg-emerald-50', 'dark:bg-emerald-950/80', 'text-emerald-800', 'dark:text-emerald-300');
+        tab.classList.remove('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800', 'text-stone-600', 'dark:text-stone-300');
+      } else {
+        tab.classList.remove('border-emerald-600', 'bg-emerald-50', 'dark:bg-emerald-950/80', 'text-emerald-800', 'dark:text-emerald-300');
+        tab.classList.add('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800', 'text-stone-600', 'dark:text-stone-300');
+      }
+    });
+
+    applyFilters();
+  };
+
+  window.searchAnimals = function(term) {
+    searchTerm = term.toLowerCase().trim();
+    applyFilters();
+  };
+
+  function applyFilters() {
+    const items = document.querySelectorAll('.animal-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const species = item.getAttribute('data-species');
+      const needsSpay = item.getAttribute('data-needs-spay') === 'true';
+      const name = item.getAttribute('data-name') || '';
+
+      let matchesFilter = true;
+      if (activeFilter === 'cat' && species !== 'cat') matchesFilter = false;
+      if (activeFilter === 'dog' && species !== 'dog') matchesFilter = false;
+      if (activeFilter === 'needs_spay' && !needsSpay) matchesFilter = false;
+
+      let matchesSearch = true;
+      if (searchTerm && !name.includes(searchTerm)) matchesSearch = false;
+
+      if (matchesFilter && matchesSearch) {
+        item.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    const noMsg = document.getElementById('no-animals-msg');
+    if (visibleCount === 0) {
+      noMsg?.classList.remove('hidden');
+    } else {
+      noMsg?.classList.add('hidden');
+    }
+  }
+</script>

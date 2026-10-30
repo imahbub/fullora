@@ -1,0 +1,473 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Shelter Admin Panel — Fullora's Shelter">
+
+  <section class="py-10 bg-stone-100 dark:bg-stone-950 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Admin Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-1">
+            <span>🛡️ Shelter Management Backoffice</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
+            Fullora Shelter Control Panel
+          </h1>
+        </div>
+
+        <div id="admin-status-pill" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+          <span class="w-2 h-2 rounded-full bg-amber-500" id="auth-indicator"></span>
+          <span id="auth-status-text">Passcode Protected</span>
+        </div>
+      </div>
+
+      <!-- Passcode Modal / Gate (if not unlocked) -->
+      <div id="admin-gate" class="max-w-md mx-auto my-12 p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xl text-center space-y-4">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl shadow-xs">
+          🔒
+        </div>
+        <h2 class="text-xl font-bold text-stone-900 dark:text-white">Admin Authentication</h2>
+        <p class="text-xs text-stone-500 dark:text-stone-400">
+          Enter shelter management passcode to edit animals, costs, and audit transactions.
+        </p>
+
+        <form id="admin-login-form" onsubmit="window.handleAdminLogin(event)" class="space-y-3 pt-2">
+          <input 
+            type="password" 
+            id="admin-passcode-input" 
+            placeholder="Enter passcode (default: fullora2026)" 
+            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm focus:ring-2 focus:ring-emerald-500 outline-hidden"
+          />
+          <button 
+            type="submit" 
+            class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
+          >
+            Unlock Dashboard &rarr;
+          </button>
+        </form>
+        <p class="text-[11px] text-stone-400">Default development passcode: <code class="font-mono bg-stone-100 dark:bg-stone-800 px-1 py-0.5 rounded">fullora2026</code></p>
+      </div>
+
+      <!-- Admin Main Dashboard (Hidden until unlocked) -->
+      <div id="admin-dashboard" class="hidden space-y-8">
+        
+        <!-- Navigation Tabs inside Admin -->
+        <div class="flex flex-wrap items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-3">
+          <button onclick="window.switchAdminTab('transactions')" id="tab-btn-transactions" class="admin-nav-tab px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs">
+            📋 Pending Transactions (<span id="pending-count">1</span>)
+          </button>
+          <button onclick="window.switchAdminTab('animals')" id="tab-btn-animals" class="admin-nav-tab px-4 py-2 rounded-xl text-xs font-bold bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+            🐾 Animals Management
+          </button>
+          <button onclick="window.switchAdminTab('settings')" id="tab-btn-settings" class="admin-nav-tab px-4 py-2 rounded-xl text-xs font-bold bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+            ⚙️ Shelter Costs & Accounts Settings
+          </button>
+          <button onclick="window.handleAdminLogout()" class="ml-auto text-xs font-semibold text-rose-600 hover:underline">
+            Lock & Logout
+          </button>
+        </div>
+
+        <!-- TAB 1: TRANSACTIONS AUDIT DESK -->
+        <div id="admin-tab-transactions" class="space-y-4">
+          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-bold text-lg text-stone-900 dark:text-white">Transaction Review & Verification Desk</h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400">Match submitted wallet numbers & TrxIDs with your mobile banking/bank statement to verify.</p>
+              </div>
+              <button onclick="window.loadDonationsList()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-stone-700 dark:text-stone-300">
+                🔄 Refresh
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-stone-50 dark:bg-stone-800/60 text-stone-500 uppercase tracking-wider font-semibold border-b border-stone-200 dark:border-stone-800">
+                  <tr>
+                    <th class="py-3 px-4">Date</th>
+                    <th class="py-3 px-4">Donor / Status</th>
+                    <th class="py-3 px-4">Mode & Cause</th>
+                    <th class="py-3 px-4">Channel</th>
+                    <th class="py-3 px-4">Sender Wallet / Account</th>
+                    <th class="py-3 px-4">Transaction Reference (TrxID)</th>
+                    <th class="py-3 px-4">Amount</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-table-body" class="divide-y divide-stone-100 dark:divide-stone-800">
+                  <!-- Injected via client script -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ANIMALS MANAGEMENT (ADD & EDIT) -->
+        <div id="admin-tab-animals" class="hidden space-y-6">
+          
+          <!-- Add New Animal Card -->
+          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <h3 class="font-bold text-lg text-stone-900 dark:text-white mb-1">Add a New Cat or Dog</h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400 mb-6">Create profiles with photos, medical needs, and sponsorship goals.</p>
+
+            <form onsubmit="window.handleCreateAnimal(event)" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">Pet Name *</label>
+                  <input type="text" id="new-pet-name" required placeholder="e.g. Milo" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">Species *</label>
+                  <select id="new-pet-species" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden">
+                    <option value="cat">🐱 Cat</option>
+                    <option value="dog">🐶 Dog</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">Age & Gender</label>
+                  <input type="text" id="new-pet-age" placeholder="e.g. 1 year • Male" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">Photo Image URL</label>
+                  <input type="url" id="new-pet-image" placeholder="https://images.unsplash.com/... or paste link" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">Rescue Story & Personality</label>
+                  <input type="text" id="new-pet-story" placeholder="Found in Dhanmondi, loves purring and gentle head pats..." class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-6 pt-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="new-pet-needs-spay" class="w-4 h-4 rounded-md text-emerald-600" />
+                  <span class="text-xs font-semibold text-stone-800 dark:text-stone-200">Needs Spaying / Neutering Surgery (৳1,500)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="new-pet-featured" checked class="w-4 h-4 rounded-md text-emerald-600" />
+                  <span class="text-xs font-semibold text-stone-800 dark:text-stone-200">Show on Homepage</span>
+                </label>
+              </div>
+
+              <button type="submit" class="py-2.5 px-5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all">
+                + Save Pet Profile
+              </button>
+            </form>
+          </div>
+
+          <!-- Existing Animals List -->
+          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <h3 class="font-bold text-lg text-stone-900 dark:text-white mb-4">Current Shelter Animals</h3>
+            <div id="admin-animals-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 3: SHELTER SETTINGS & COSTS -->
+        <div id="admin-tab-settings" class="hidden space-y-6">
+          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <h3 class="font-bold text-lg text-stone-900 dark:text-white mb-1">Customizable Shelter Costs & Targets</h3>
+            <p class="text-xs text-stone-500 dark:text-stone-400 mb-6">Modify default donation tiers and campaign milestones.</p>
+
+            <form onsubmit="window.handleSaveSettings(event)" class="space-y-6">
+              
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">
+                    Spay / Neuter Cost (BDT ৳) *
+                  </label>
+                  <input type="number" id="setting-spay-cost" value="1500" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">
+                    Monthly Sponsorship Default (BDT ৳) *
+                  </label>
+                  <input type="number" id="setting-sponsor-cost" value="1000" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-600 dark:text-stone-400 mb-1">
+                    Monthly Shelter Goal Target (BDT ৳) *
+                  </label>
+                  <input type="number" id="setting-goal-target" value="100000" required class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold focus:ring-2 focus:ring-emerald-500 outline-hidden" />
+                </div>
+              </div>
+
+              <!-- MFS Accounts Setup -->
+              <div class="border-t border-stone-200 dark:border-stone-800 pt-5 space-y-3">
+                <h4 class="text-sm font-bold text-stone-900 dark:text-white">Mobile Financial Services (MFS) Numbers</h4>
+                <p class="text-xs text-stone-500 dark:text-stone-400">These will be displayed with 1-click copy for donors.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-pink-600 mb-1">bKash Number</label>
+                    <input type="text" id="setting-bkash" value="01700-000000" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-mono outline-hidden" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-orange-600 mb-1">Nagad Number</label>
+                    <input type="text" id="setting-nagad" value="01800-000000" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-mono outline-hidden" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-purple-600 mb-1">Rocket Number</label>
+                    <input type="text" id="setting-rocket" value="01900-000000" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-mono outline-hidden" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bank Account Details Setup -->
+              <div class="border-t border-stone-200 dark:border-stone-800 pt-5 space-y-3">
+                <h4 class="text-sm font-bold text-stone-900 dark:text-white">Shelter Official Bank Account</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1">Bank Name</label>
+                    <input type="text" id="setting-bank-name" value="City Bank PLC" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs outline-hidden" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1">Account Name</label>
+                    <input type="text" id="setting-bank-acc-name" value="Fullora Animal Sanctuary" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs outline-hidden" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1">Account Number</label>
+                    <input type="text" id="setting-bank-acc-num" value="11029384756" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-mono outline-hidden" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-stone-600 dark:text-stone-400 mb-1">Branch & Routing</label>
+                    <input type="text" id="setting-bank-branch" value="Dhanmondi (Routing: 225272635)" class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs outline-hidden" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-4">
+                <button type="submit" class="py-2.5 px-6 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all">
+                  Save All Settings & Accounts
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+</Layout>
+
+<script>
+  import { supabase, DEMO_ANIMALS, DEMO_DONATIONS, DEFAULT_SETTINGS } from '../lib/supabase.js';
+
+  let currentAdminTab = 'transactions';
+
+  window.handleAdminLogin = function(e: Event) {
+    e.preventDefault();
+    const input = document.getElementById('admin-passcode-input') as HTMLInputElement;
+    const passcode = input?.value?.trim();
+
+    if (passcode === 'fullora2026' || passcode === 'admin') {
+      sessionStorage.setItem('fullora_admin_authed', 'true');
+      unlockDashboard();
+    } else {
+      alert('Incorrect passcode. Please try again.');
+    }
+  };
+
+  window.handleAdminLogout = function() {
+    sessionStorage.removeItem('fullora_admin_authed');
+    location.reload();
+  };
+
+  function unlockDashboard() {
+    document.getElementById('admin-gate')?.classList.add('hidden');
+    document.getElementById('admin-dashboard')?.classList.remove('hidden');
+
+    const authInd = document.getElementById('auth-indicator');
+    const authText = document.getElementById('auth-status-text');
+    if (authInd) {
+      authInd.classList.remove('bg-amber-500');
+      authInd.classList.add('bg-emerald-500');
+    }
+    if (authText) authText.textContent = 'Authenticated (Admin)';
+
+    window.loadDonationsList();
+    window.loadAnimalsList();
+  }
+
+  // Check if previously authed in session
+  if (sessionStorage.getItem('fullora_admin_authed') === 'true') {
+    unlockDashboard();
+  }
+
+  window.switchAdminTab = function(tab: string) {
+    currentAdminTab = tab;
+    const tabs = ['transactions', 'animals', 'settings'];
+    tabs.forEach(t => {
+      const panel = document.getElementById(`admin-tab-${t}`);
+      const btn = document.getElementById(`tab-btn-${t}`);
+      if (t === tab) {
+        panel?.classList.remove('hidden');
+        btn?.classList.add('bg-emerald-600', 'text-white');
+        btn?.classList.remove('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+      } else {
+        panel?.classList.add('hidden');
+        btn?.classList.remove('bg-emerald-600', 'text-white');
+        btn?.classList.add('bg-stone-200', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+      }
+    });
+  };
+
+  window.loadDonationsList = async function() {
+    const tbody = document.getElementById('transactions-table-body');
+    if (!tbody) return;
+
+    let donations = [...DEMO_DONATIONS];
+    try {
+      const local = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
+      if (local.length > 0) donations = [...local, ...donations];
+    } catch (e) {}
+
+    try {
+      const { data } = await supabase.from('donations').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) donations = data;
+    } catch (e) {}
+
+    const pendingCount = donations.filter((d: any) => d.status === 'pending').length;
+    const countEl = document.getElementById('pending-count');
+    if (countEl) countEl.textContent = pendingCount.toString();
+
+    tbody.innerHTML = donations.map((d: any) => `
+      <tr class="hover:bg-stone-50/50 dark:hover:bg-stone-800/40 transition-colors">
+        <td class="py-3 px-4 text-stone-500">${new Date(d.created_at || Date.now()).toLocaleDateString()}</td>
+        <td class="py-3 px-4">
+          <div class="font-bold text-stone-900 dark:text-white">${d.donor_name || 'Anonymous Angel'}</div>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm text-[10px] font-semibold ${
+            d.status === 'verified' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+          }">
+            ${d.status === 'verified' ? '✓ Verified' : '⏳ Pending Audit'}
+          </span>
+        </td>
+        <td class="py-3 px-4 capitalize font-medium text-stone-700 dark:text-stone-300">${d.donation_mode?.replace('_', ' ')}</td>
+        <td class="py-3 px-4 uppercase font-semibold text-stone-600 dark:text-stone-400">${d.payment_type}</td>
+        <td class="py-3 px-4 font-mono">${d.sender_wallet_or_account || '017XXXXXXXX'}</td>
+        <td class="py-3 px-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">${d.transaction_reference}</td>
+        <td class="py-3 px-4 font-bold text-stone-900 dark:text-white">৳${Number(d.amount).toLocaleString()}</td>
+        <td class="py-3 px-4 text-right">
+          ${d.status === 'pending' ? `
+            <button onclick="window.verifyDonation('${d.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all">
+              Approve
+            </button>
+          ` : `
+            <span class="text-stone-400 text-[11px]">Approved</span>
+          `}
+        </td>
+      </tr>
+    `).join('');
+  };
+
+  window.verifyDonation = async function(id: string) {
+    try {
+      await supabase.from('donations').update({ status: 'verified', verified_at: new Date().toISOString() }).eq('id', id);
+    } catch (e) {}
+
+    // Also update local cache
+    try {
+      const local = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
+      const updated = local.map((d: any) => d.id === id ? { ...d, status: 'verified' } : d);
+      localStorage.setItem('fullora_local_donations', JSON.stringify(updated));
+    } catch (e) {}
+
+    alert('Donation verified! Wall of Heroes & statistics updated.');
+    window.loadDonationsList();
+  };
+
+  window.loadAnimalsList = function() {
+    const container = document.getElementById('admin-animals-list');
+    if (!container) return;
+
+    let animals = [...DEMO_ANIMALS];
+    try {
+      const local = JSON.parse(localStorage.getItem('fullora_local_animals') || '[]');
+      if (local.length > 0) animals = [...local, ...animals];
+    } catch (e) {}
+
+    container.innerHTML = animals.map((a: any) => `
+      <div class="p-3.5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800 flex items-center gap-3">
+        <img src="${a.image_url}" alt="${a.name}" class="w-14 h-14 rounded-xl object-cover" />
+        <div class="flex-1 min-w-0">
+          <h4 class="text-xs font-bold text-stone-900 dark:text-white truncate">${a.name} (${a.species})</h4>
+          <p class="text-[11px] text-stone-500 truncate">${a.story || 'Rescue resident'}</p>
+          <div class="flex items-center gap-2 mt-1 text-[10px]">
+            <span class="text-emerald-600 font-semibold">Goal: ৳${a.monthly_sponsorship_goal || 1000}/mo</span>
+            ${a.needs_spay_neuter ? '<span class="text-amber-600">Needs Spay ✂️</span>' : '<span class="text-stone-400">Sterilized</span>'}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  window.handleCreateAnimal = function(e: Event) {
+    e.preventDefault();
+    const name = (document.getElementById('new-pet-name') as HTMLInputElement).value;
+    const species = (document.getElementById('new-pet-species') as HTMLSelectElement).value;
+    const age = (document.getElementById('new-pet-age') as HTMLInputElement).value || 'Young';
+    const image = (document.getElementById('new-pet-image') as HTMLInputElement).value || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+    const story = (document.getElementById('new-pet-story') as HTMLInputElement).value || 'Loving rescue cat/dog.';
+    const needsSpay = (document.getElementById('new-pet-needs-spay') as HTMLInputElement).checked;
+    const featured = (document.getElementById('new-pet-featured') as HTMLInputElement).checked;
+
+    const newAnimal = {
+      id: 'animal-' + Date.now(),
+      name,
+      species,
+      age,
+      gender: 'unknown',
+      story,
+      image_url: image,
+      needs_spay_neuter: needsSpay,
+      is_spayed_neutered: !needsSpay,
+      spay_neuter_cost: 1500,
+      monthly_sponsorship_goal: 1000,
+      current_sponsorship_funded: 0,
+      status: 'available',
+      is_featured: featured
+    };
+
+    try {
+      const local = JSON.parse(localStorage.getItem('fullora_local_animals') || '[]');
+      local.unshift(newAnimal);
+      localStorage.setItem('fullora_local_animals', JSON.stringify(local));
+    } catch (e) {}
+
+    alert(`Successfully added ${name}!`);
+    (e.target as HTMLFormElement).reset();
+    window.loadAnimalsList();
+  };
+
+  window.handleSaveSettings = function(e: Event) {
+    e.preventDefault();
+    const spayCost = (document.getElementById('setting-spay-cost') as HTMLInputElement).value;
+    const sponsorCost = (document.getElementById('setting-sponsor-cost') as HTMLInputElement).value;
+    const goal = (document.getElementById('setting-goal-target') as HTMLInputElement).value;
+
+    const bkash = (document.getElementById('setting-bkash') as HTMLInputElement).value;
+    const nagad = (document.getElementById('setting-nagad') as HTMLInputElement).value;
+    const rocket = (document.getElementById('setting-rocket') as HTMLInputElement).value;
+
+    const settings = {
+      spayCost,
+      sponsorCost,
+      goal,
+      bkash,
+      nagad,
+      rocket
+    };
+
+    localStorage.setItem('fullora_shelter_settings', JSON.stringify(settings));
+    alert('Shelter settings and account numbers updated successfully!');
+  };
+</script>

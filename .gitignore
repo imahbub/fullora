@@ -1,0 +1,22 @@
+# User secrets and instructions
+instructions.txt
+.env
+.env.local
+.env.*.local
+
+# Node & dependencies
+node_modules/
+dist/
+.astro/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

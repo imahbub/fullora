@@ -1,0 +1,596 @@
+---
+// Donation Modal Component with Gamification and Confetti
+---
+
+<div id="donation-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 transition-all duration-300">
+  
+  <div class="relative w-full max-w-xl bg-white dark:bg-stone-900 rounded-3xl shadow-2xl border border-stone-200 dark:border-stone-800 overflow-hidden text-stone-800 dark:text-stone-100 my-8">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl">
+          🐾
+        </div>
+        <div>
+          <h3 id="modal-title" class="font-bold text-lg leading-tight">Donate to Fullora's Shelter</h3>
+          <p id="modal-subtitle" class="text-xs text-emerald-100">Directly funding food, medical surgeries & sanctuary care</p>
+        </div>
+      </div>
+      <button 
+        onclick="window.closeDonationModal()"
+        aria-label="Close modal"
+        class="w-8 h-8 rounded-full bg-black/15 hover:bg-black/30 flex items-center justify-center text-white transition-colors"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Modal Body: Step 1 & 2 Form -->
+    <div id="donation-form-container" class="p-6 space-y-6">
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3 text-xs font-semibold text-stone-500">
+        <span class="text-emerald-600 dark:text-emerald-400">Step 1: Choose Cause & Amount</span>
+        <span>&rarr;</span>
+        <span class="text-stone-600 dark:text-stone-300">Step 2: Pay & Enter Trx ID</span>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-2">
+          Select Donation Mode
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+          <button 
+            type="button" 
+            id="tab-once" 
+            onclick="window.switchDonationMode('once')" 
+            class="py-2.5 px-2 rounded-xl text-xs font-bold border transition-all text-center border-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300"
+          >
+            💖 Once / Monthly
+          </button>
+          <button 
+            type="button" 
+            id="tab-sponsor" 
+            onclick="window.switchDonationMode('sponsor')" 
+            class="py-2.5 px-2 rounded-xl text-xs font-bold border transition-all text-center border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300"
+          >
+            🌟 Sponsor Pet
+          </button>
+          <button 
+            type="button" 
+            id="tab-spay_neuter" 
+            onclick="window.switchDonationMode('spay_neuter')" 
+            class="py-2.5 px-2 rounded-xl text-xs font-bold border transition-all text-center border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-700 dark:text-stone-300"
+          >
+            ✂️ Spay / Neuter
+          </button>
+        </div>
+      </div>
+
+      <!-- Animal Selection (Visible for 'sponsor' or 'spay_neuter') -->
+      <div id="animal-select-container" class="hidden">
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1.5">
+          Select Animal
+        </label>
+        <select 
+          id="animal-select" 
+          class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm focus:ring-2 focus:ring-emerald-500 outline-hidden"
+        >
+          <option value="">General Sanctuary Care (All Cats & Dogs)</option>
+          <option value="a1">Bagheera (Cat - 1.5 yrs)</option>
+          <option value="a2">Luna (Cat - 8 mos • Needs Spaying)</option>
+          <option value="a3">Sheru (Dog - 2 yrs)</option>
+          <option value="a4">Bella (Dog - 1 yr • Needs Spaying)</option>
+          <option value="a5">Chai (Cat - 3 yrs)</option>
+          <option value="a6">Rocky (Dog - 4 yrs)</option>
+        </select>
+      </div>
+
+      <!-- Frequency (For general mode) -->
+      <div id="frequency-container" class="flex items-center gap-3">
+        <label class="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+          <input type="radio" name="frequency" value="once" checked class="text-emerald-600 focus:ring-emerald-500" />
+          <span>One-Time Donation</span>
+        </label>
+        <label class="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+          <input type="radio" name="frequency" value="monthly" class="text-emerald-600 focus:ring-emerald-500" />
+          <span>Monthly Supporter (৳1,000/mo)</span>
+        </label>
+      </div>
+
+      <!-- Preset Amount Chips -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-2">
+          Donation Amount (BDT ৳)
+        </label>
+        <div class="grid grid-cols-4 gap-2 mb-3">
+          <button type="button" onclick="window.selectAmount(500)" class="amount-btn py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:border-emerald-500">৳500</button>
+          <button type="button" onclick="window.selectAmount(1000)" class="amount-btn py-2 rounded-xl text-xs font-bold border border-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300">৳1,000</button>
+          <button type="button" onclick="window.selectAmount(1500)" class="amount-btn py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:border-emerald-500">৳1,500</button>
+          <button type="button" onclick="window.selectAmount(3000)" class="amount-btn py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:border-emerald-500">৳3,000</button>
+        </div>
+        <div class="relative">
+          <span class="absolute left-3.5 top-2.5 text-stone-400 text-sm font-semibold">৳</span>
+          <input 
+            type="number" 
+            id="custom-amount-input" 
+            value="1000" 
+            min="100" 
+            placeholder="Custom Amount" 
+            class="w-full pl-8 pr-4 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-hidden"
+          />
+        </div>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <div class="border-t border-stone-100 dark:border-stone-800 pt-4">
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-2">
+          Payment Channel
+        </label>
+        
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button 
+            type="button" 
+            id="method-mfs" 
+            onclick="window.switchPaymentMethod('mfs')"
+            class="p-3 rounded-2xl border text-left flex items-start gap-3 transition-all border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40"
+          >
+            <span class="text-2xl">📱</span>
+            <div>
+              <div class="text-xs font-bold text-stone-900 dark:text-white">MFS (bKash / Nagad / Rocket)</div>
+              <div class="text-[11px] text-stone-500 dark:text-stone-400">Mobile Wallet Send Money</div>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            id="method-bank" 
+            onclick="window.switchPaymentMethod('bank')"
+            class="p-3 rounded-2xl border text-left flex items-start gap-3 transition-all border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800"
+          >
+            <span class="text-2xl">🏦</span>
+            <div>
+              <div class="text-xs font-bold text-stone-900 dark:text-white">Bank Transfer</div>
+              <div class="text-[11px] text-stone-500 dark:text-stone-400">Direct Deposit / BEFTN / NPSB</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- MFS Account Details Box with 1-Click Copy -->
+        <div id="mfs-details-box" class="p-4 rounded-2xl bg-stone-100 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 space-y-2.5">
+          <div class="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center justify-between">
+            <span>Official Shelter MFS Numbers (Send Money / Personal):</span>
+            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">1-Click Copy</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <!-- bKash -->
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs">
+              <div>
+                <span class="font-bold text-pink-600">bKash</span>
+                <span id="bkash-num" class="block font-mono font-medium text-stone-800 dark:text-stone-200">01700-000000</span>
+              </div>
+              <button type="button" onclick="window.copyToClipboard('01700000000', this)" class="p-1.5 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md text-stone-500">📋</button>
+            </div>
+            <!-- Nagad -->
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs">
+              <div>
+                <span class="font-bold text-orange-600">Nagad</span>
+                <span id="nagad-num" class="block font-mono font-medium text-stone-800 dark:text-stone-200">01800-000000</span>
+              </div>
+              <button type="button" onclick="window.copyToClipboard('01800000000', this)" class="p-1.5 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md text-stone-500">📋</button>
+            </div>
+            <!-- Rocket -->
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs">
+              <div>
+                <span class="font-bold text-purple-600">Rocket</span>
+                <span id="rocket-num" class="block font-mono font-medium text-stone-800 dark:text-stone-200">01900-000000</span>
+              </div>
+              <button type="button" onclick="window.copyToClipboard('01900000000', this)" class="p-1.5 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md text-stone-500">📋</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Details Box with 1-Click Copy -->
+        <div id="bank-details-box" class="hidden p-4 rounded-2xl bg-stone-100 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 space-y-2">
+          <div class="text-xs font-bold text-stone-700 dark:text-stone-300">
+            Official Shelter Bank Account
+          </div>
+          <div class="p-3 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs space-y-1">
+            <div class="flex justify-between">
+              <span class="text-stone-500">Bank:</span>
+              <span class="font-semibold" id="bank-name-val">City Bank PLC</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Account Name:</span>
+              <span class="font-semibold" id="bank-acc-name-val">Fullora Animal Sanctuary</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-stone-500">Account Number:</span>
+              <div class="flex items-center gap-1 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <span id="bank-acc-num-val">11029384756</span>
+                <button type="button" onclick="window.copyToClipboard('11029384756', this)" class="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md text-stone-500">📋</button>
+              </div>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone-500">Branch & Routing:</span>
+              <span class="font-semibold">Dhanmondi (Routing: 225272635)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Submission Form (Super Easy Reference ID) -->
+      <div class="border-t border-stone-100 dark:border-stone-800 pt-4 space-y-3">
+        <label class="block text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+          Step 2: Enter Transaction Details
+        </label>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label id="sender-label" class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+              Your MFS Wallet Number *
+            </label>
+            <input 
+              type="text" 
+              id="sender-input" 
+              placeholder="e.g. 01712-XXXXXX" 
+              required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm focus:ring-2 focus:ring-emerald-500 outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1">
+              Transaction ID / Reference (TrxID) *
+            </label>
+            <input 
+              type="text" 
+              id="trx-input" 
+              placeholder="e.g. 9K28JA71B" 
+              required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-mono uppercase focus:ring-2 focus:ring-emerald-500 outline-hidden"
+            />
+          </div>
+        </div>
+
+        <!-- Low Friction Anonymous / Profile Options -->
+        <div class="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 space-y-2.5">
+          <label class="flex items-center gap-2.5 cursor-pointer">
+            <input 
+              type="checkbox" 
+              id="anonymous-checkbox" 
+              checked 
+              onchange="window.toggleAnonymousFields(this.checked)"
+              class="w-4 h-4 rounded-md text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+            />
+            <span class="text-xs font-semibold text-stone-800 dark:text-stone-200">
+              Donate Anonymously (No account needed)
+            </span>
+          </label>
+
+          <div id="donor-profile-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <input 
+              type="text" 
+              id="donor-name-input" 
+              placeholder="Your Name / Nickname" 
+              class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden"
+            />
+            <input 
+              type="email" 
+              id="donor-email-input" 
+              placeholder="Email (for digital badge & receipt)" 
+              class="w-full px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs focus:ring-2 focus:ring-emerald-500 outline-hidden"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="button" 
+        id="submit-donation-btn"
+        onclick="window.handleDonationSubmit()" 
+        class="w-full py-3.5 px-6 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+      >
+        <span>Submit Donation Reference (৳)</span>
+        <span>&rarr;</span>
+      </button>
+
+    </div>
+
+    <!-- Celebration & Instant Certificate Screen (Visible upon submission) -->
+    <div id="celebration-screen" class="hidden p-8 text-center space-y-6">
+      
+      <div class="w-16 h-16 mx-auto rounded-3xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl shadow-sm">
+        🎉
+      </div>
+
+      <div class="space-y-1">
+        <h4 class="text-2xl font-black text-stone-900 dark:text-white">Thank You, Hero! 🐾</h4>
+        <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-300">
+          Your donation reference has been recorded. Our team will verify it against the bank/MFS statement shortly!
+        </p>
+      </div>
+
+      <!-- Gamified Digital Card / Badge -->
+      <div id="certificate-card" class="p-6 rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-amber-500 text-white shadow-xl text-left relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 text-8xl opacity-15">🐾</div>
+        
+        <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider mb-4">
+          <span>Fullora Animal Sanctuary</span>
+          <span class="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-xs">Verified Supporter</span>
+        </div>
+
+        <div class="text-xl sm:text-2xl font-black mb-1" id="cert-donor-name">Anonymous Angel</div>
+        <div class="text-xs text-emerald-100 mb-4" id="cert-cause">Mode: Rescue Animal Care</div>
+
+        <div class="flex items-center justify-between border-t border-white/20 pt-3 text-xs">
+          <div>
+            <span class="opacity-80 block text-[10px]">Reference ID</span>
+            <span class="font-mono font-bold" id="cert-trx-id">9K28JA71B</span>
+          </div>
+          <div>
+            <span class="opacity-80 block text-[10px]">Badge Awarded</span>
+            <span class="font-bold text-amber-200" id="cert-badge">Paw Protector 🌟</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button 
+          onclick="window.closeDonationModal(); location.reload();"
+          class="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+        >
+          View On Wall of Heroes
+        </button>
+        <button 
+          onclick="window.closeDonationModal()"
+          class="flex-1 py-3 px-4 rounded-xl text-xs font-bold border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  import confetti from 'canvas-confetti';
+  import { supabase, DEMO_DONATIONS } from '../lib/supabase.js';
+
+  let currentMode = 'once';
+  let currentMethod = 'mfs';
+  let selectedAnimalId = '';
+  let selectedAnimalName = '';
+
+  window.openDonationModal = function(options = {}) {
+    const modal = document.getElementById('donation-modal');
+    modal?.classList.remove('hidden');
+
+    if (options.mode) {
+      window.switchDonationMode(options.mode);
+    }
+    if (options.animalId) {
+      selectedAnimalId = options.animalId;
+      selectedAnimalName = options.animalName || '';
+      const select = document.getElementById('animal-select') as HTMLSelectElement;
+      if (select) select.value = options.animalId;
+    }
+    if (options.amount) {
+      window.selectAmount(options.amount);
+    }
+
+    // Reset celebration screen
+    document.getElementById('donation-form-container')?.classList.remove('hidden');
+    document.getElementById('celebration-screen')?.classList.add('hidden');
+  };
+
+  window.closeDonationModal = function() {
+    const modal = document.getElementById('donation-modal');
+    modal?.classList.add('hidden');
+  };
+
+  window.switchDonationMode = function(mode: string) {
+    currentMode = mode;
+    
+    // Update tabs styling
+    const tabs = ['once', 'sponsor', 'spay_neuter'];
+    tabs.forEach(t => {
+      const el = document.getElementById(`tab-${t}`);
+      if (t === mode) {
+        el?.classList.add('border-emerald-600', 'bg-emerald-50', 'dark:bg-emerald-950/60', 'text-emerald-800', 'dark:text-emerald-300');
+        el?.classList.remove('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+      } else {
+        el?.classList.remove('border-emerald-600', 'bg-emerald-50', 'dark:bg-emerald-950/60', 'text-emerald-800', 'dark:text-emerald-300');
+        el?.classList.add('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800', 'text-stone-700', 'dark:text-stone-300');
+      }
+    });
+
+    const animalSelectContainer = document.getElementById('animal-select-container');
+    const frequencyContainer = document.getElementById('frequency-container');
+
+    if (mode === 'sponsor' || mode === 'spay_neuter') {
+      animalSelectContainer?.classList.remove('hidden');
+      frequencyContainer?.classList.add('hidden');
+      if (mode === 'spay_neuter') {
+        window.selectAmount(1500);
+      } else {
+        window.selectAmount(1000);
+      }
+    } else {
+      animalSelectContainer?.classList.add('hidden');
+      frequencyContainer?.classList.remove('hidden');
+    }
+  };
+
+  window.selectAmount = function(amt: number) {
+    const customInput = document.getElementById('custom-amount-input') as HTMLInputElement;
+    if (customInput) customInput.value = amt.toString();
+  };
+
+  window.switchPaymentMethod = function(method: string) {
+    currentMethod = method;
+    const mfsTab = document.getElementById('method-mfs');
+    const bankTab = document.getElementById('method-bank');
+    const mfsBox = document.getElementById('mfs-details-box');
+    const bankBox = document.getElementById('bank-details-box');
+    const senderLabel = document.getElementById('sender-label');
+    const senderInput = document.getElementById('sender-input') as HTMLInputElement;
+
+    if (method === 'mfs') {
+      mfsTab?.classList.add('border-emerald-600', 'bg-emerald-50/70', 'dark:bg-emerald-950/40');
+      mfsTab?.classList.remove('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800');
+      bankTab?.classList.remove('border-emerald-600', 'bg-emerald-50/70', 'dark:bg-emerald-950/40');
+      bankTab?.classList.add('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800');
+      mfsBox?.classList.remove('hidden');
+      bankBox?.classList.add('hidden');
+      if (senderLabel) senderLabel.textContent = "Your MFS Wallet Number *";
+      if (senderInput) senderInput.placeholder = "e.g. 01712-XXXXXX";
+    } else {
+      bankTab?.classList.add('border-emerald-600', 'bg-emerald-50/70', 'dark:bg-emerald-950/40');
+      bankTab?.classList.remove('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800');
+      mfsTab?.classList.remove('border-emerald-600', 'bg-emerald-50/70', 'dark:bg-emerald-950/40');
+      mfsTab?.classList.add('border-stone-200', 'dark:border-stone-700', 'bg-stone-50', 'dark:bg-stone-800');
+      bankBox?.classList.remove('hidden');
+      mfsBox?.classList.add('hidden');
+      if (senderLabel) senderLabel.textContent = "Your Bank Name & Account Number *";
+      if (senderInput) senderInput.placeholder = "e.g. BRAC Bank - 150XXXXXXXX";
+    }
+  };
+
+  window.copyToClipboard = function(text: string, btn: HTMLElement) {
+    navigator.clipboard.writeText(text);
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✓';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 1500);
+  };
+
+  window.toggleAnonymousFields = function(isAnon: boolean) {
+    const profileFields = document.getElementById('donor-profile-fields');
+    if (isAnon) {
+      profileFields?.classList.add('hidden');
+    } else {
+      profileFields?.classList.remove('hidden');
+    }
+  };
+
+  window.handleDonationSubmit = async function() {
+    const senderInput = document.getElementById('sender-input') as HTMLInputElement;
+    const trxInput = document.getElementById('trx-input') as HTMLInputElement;
+    const amountInput = document.getElementById('custom-amount-input') as HTMLInputElement;
+    const isAnonCheckbox = document.getElementById('anonymous-checkbox') as HTMLInputElement;
+    const donorNameInput = document.getElementById('donor-name-input') as HTMLInputElement;
+    const donorEmailInput = document.getElementById('donor-email-input') as HTMLInputElement;
+    const animalSelect = document.getElementById('animal-select') as HTMLSelectElement;
+
+    const sender = senderInput?.value?.trim();
+    const trx = trxInput?.value?.trim();
+    const amount = parseFloat(amountInput?.value || '1000');
+    const isAnon = isAnonCheckbox ? isAnonCheckbox.checked : true;
+    const donorName = isAnon ? 'Anonymous Angel' : (donorNameInput?.value?.trim() || 'Anonymous Angel');
+    const donorEmail = isAnon ? null : (donorEmailInput?.value?.trim() || null);
+    const animalId = animalSelect ? animalSelect.value : null;
+
+    if (!sender) {
+      alert("Please enter your sending wallet or bank account number.");
+      senderInput?.focus();
+      return;
+    }
+
+    if (!trx) {
+      alert("Please enter your Transaction ID or Reference number.");
+      trxInput?.focus();
+      return;
+    }
+
+    const submitBtn = document.getElementById('submit-donation-btn');
+    if (submitBtn) {
+      submitBtn.setAttribute('disabled', 'true');
+      submitBtn.innerHTML = 'Recording Transaction...';
+    }
+
+    // Determine gamified badge
+    let badge = 'Paw Protector 🌟';
+    if (currentMode === 'spay_neuter') badge = 'Life Changer ✂️';
+    else if (isAnon) badge = 'Secret Benefactor 🕵️';
+    else if (currentMode === 'monthly') badge = 'Guardian Angel 🛡️';
+
+    // Insert to Supabase (or fallback local storage)
+    try {
+      const { error } = await supabase.from('donations').insert({
+        donation_mode: currentMode,
+        animal_id: animalId || null,
+        amount: amount,
+        currency: 'BDT',
+        payment_type: currentMethod,
+        sender_wallet_or_account: sender,
+        transaction_reference: trx,
+        donor_name: donorName,
+        donor_email: donorEmail,
+        is_anonymous: isAnon,
+        status: 'pending'
+      });
+
+      if (error) {
+        console.warn('Supabase insert note (using offline fallback if table not ready):', error.message);
+      }
+    } catch (e) {
+      console.warn('Network notice:', e);
+    }
+
+    // Also cache locally for immediate UI update in Wall of Heroes
+    const localDonation = {
+      id: 'local-' + Date.now(),
+      donor_name: donorName,
+      amount: amount,
+      currency: 'BDT',
+      donation_mode: currentMode,
+      payment_type: currentMethod,
+      transaction_reference: trx,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      badge: badge
+    };
+
+    const saved = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
+    saved.unshift(localDonation);
+    localStorage.setItem('fullora_local_donations', JSON.stringify(saved));
+
+    // Show Celebration Screen
+    document.getElementById('donation-form-container')?.classList.add('hidden');
+    document.getElementById('celebration-screen')?.classList.remove('hidden');
+
+    const certDonor = document.getElementById('cert-donor-name');
+    const certTrx = document.getElementById('cert-trx-id');
+    const certBadge = document.getElementById('cert-badge');
+    const certCause = document.getElementById('cert-cause');
+
+    if (certDonor) certDonor.textContent = donorName;
+    if (certTrx) certTrx.textContent = trx;
+    if (certBadge) certBadge.textContent = badge;
+    if (certCause) {
+      certCause.textContent = currentMode === 'spay_neuter' 
+        ? 'Cause: Spay & Neuter Surgery (BDT ৳' + amount + ')'
+        : (currentMode === 'sponsor' ? 'Cause: Monthly Animal Sponsorship' : 'Cause: Sanctuary Care & Feeding');
+    }
+
+    // Fire Confetti!
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    if (submitBtn) {
+      submitBtn.removeAttribute('disabled');
+      submitBtn.innerHTML = 'Submit Donation Reference (৳) &rarr;';
+    }
+  };
+</script>

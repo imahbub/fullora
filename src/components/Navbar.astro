@@ -1,0 +1,99 @@
+---
+import DarkModeToggle from './DarkModeToggle.astro';
+
+interface Props {
+  shelterName?: string;
+}
+
+const { shelterName = "Fullora's Shelter" } = Astro.props;
+---
+
+<header class="sticky top-0 z-40 w-full backdrop-blur-md bg-stone-50/90 dark:bg-stone-950/90 border-b border-stone-200/80 dark:border-stone-800/80 transition-colors">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 sm:h-20">
+      
+      <!-- Brand Logo & Name -->
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-600/20 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <!-- Stylized Paw / Heart -->
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-lg sm:text-xl text-stone-900 dark:text-white tracking-tight leading-none">
+            {shelterName}
+          </span>
+          <span class="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+            Cat & Dog Rescue Sanctuary
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-stone-600 dark:text-stone-300">
+        <a href="/" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Home</a>
+        <a href="/animals" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+          <span>Our Animals</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded-full">Dogs & Cats</span>
+        </a>
+        <a href="/#progress" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Shelter Impact</a>
+        <a href="/#heroes" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Wall of Heroes</a>
+        <a href="/admin" class="hover:text-emerald-600 dark:hover:text-emerald-400 text-stone-400 dark:text-stone-500 text-xs flex items-center gap-1 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Admin</span>
+        </a>
+      </nav>
+
+      <!-- Right Side Actions -->
+      <div class="flex items-center gap-3">
+        <DarkModeToggle />
+
+        <!-- Direct Trigger for Donation Modal -->
+        <button
+          onclick="window.openDonationModal({ mode: 'once' })"
+          class="relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/25 hover:shadow-lg hover:shadow-emerald-600/35 active:scale-95 transition-all"
+        >
+          <svg class="w-4 h-4 text-emerald-100" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+          </svg>
+          <span>Donate ৳</span>
+        </button>
+
+        <!-- Mobile Menu Button -->
+        <button
+          id="mobile-menu-btn"
+          type="button"
+          aria-label="Open mobile navigation"
+          class="md:hidden p-2 rounded-lg text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
+        >
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Dropdown Menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 px-4 py-4 space-y-3">
+    <a href="/" class="block text-base font-medium text-stone-700 dark:text-stone-200 py-1.5">Home</a>
+    <a href="/animals" class="block text-base font-medium text-stone-700 dark:text-stone-200 py-1.5">Our Animals (Dogs & Cats)</a>
+    <a href="/#progress" class="block text-base font-medium text-stone-700 dark:text-stone-200 py-1.5">Shelter Impact</a>
+    <a href="/#heroes" class="block text-base font-medium text-stone-700 dark:text-stone-200 py-1.5">Wall of Heroes</a>
+    <a href="/admin" class="block text-base font-medium text-stone-500 dark:text-stone-400 py-1.5">Admin Panel</a>
+  </div>
+</header>
+
+<script is:inline>
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  mobileMenuBtn?.addEventListener('click', () => {
+    mobileMenu?.classList.toggle('hidden');
+  });
+</script>
