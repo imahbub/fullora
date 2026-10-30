@@ -1,35 +1,36 @@
 ---
-// Wall of Heroes & Leaderboard Component
+import Icon from './Icon.astro';
 ---
 
 <section id="heroes" class="py-12 sm:py-16 bg-stone-50 dark:bg-stone-950 transition-colors">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <div class="text-center max-w-2xl mx-auto mb-10">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 mb-3">
-        <span>🏆 Community Wall of Heroes</span>
+    <div class="text-center max-w-xl mx-auto mb-8">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300 mb-3">
+        <Icon name="shield" class="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
+        <span>Wall of Heroes</span>
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 dark:text-white">
-        Celebrating Our Paws & Whiskers Guardians
+      <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">
+        Our Generous Supporters
       </h2>
-      <p class="mt-2 text-stone-600 dark:text-stone-400 text-sm">
-        Every meal, vaccine, and surgery is made possible by your generosity. Anonymity is respected, and every contribution is honored.
+      <p class="mt-2 text-stone-600 dark:text-stone-400 text-xs sm:text-sm">
+        Every meal and sterilization is powered by your kindness. Anonymity is honored for all donors.
       </p>
     </div>
 
     <!-- Heroes Grid -->
-    <div id="heroes-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+    <div id="heroes-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-w-4xl mx-auto">
       <!-- Populated dynamically via client-side script from Supabase + local cache -->
     </div>
 
-    <!-- Empty state or encouragement -->
+    <!-- Encouragement Button -->
     <div class="mt-8 text-center">
       <button 
         onclick="window.openDonationModal({ mode: 'once' })"
-        class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
+        class="inline-flex items-center gap-1.5 text-xs font-bold text-stone-700 dark:text-stone-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
       >
-        <span>Join the Wall of Heroes with any contribution</span>
-        <span>&rarr;</span>
+        <span>Join the Wall of Heroes</span>
+        <Icon name="arrow-right" class="w-3.5 h-3.5" />
       </button>
     </div>
 
@@ -45,7 +46,6 @@
 
     let donations = [...DEMO_DONATIONS];
 
-    // Check local storage submissions
     try {
       const local = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
       if (local.length > 0) {
@@ -53,43 +53,38 @@
       }
     } catch (e) {}
 
-    // Fetch from Supabase if connected
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('donations')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(9);
 
       if (data && data.length > 0) {
-        donations = data.map((d: any) => ({
-          ...d,
-          badge: d.donation_mode === 'spay_neuter' ? 'Life Changer ✂️' : (d.is_anonymous ? 'Secret Benefactor 🕵️' : 'Paw Protector 🌟')
-        }));
+        donations = data;
       }
     } catch (e) {}
 
-    // Deduplicate & Render
     container.innerHTML = donations.slice(0, 6).map((d: any) => `
-      <div class="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs flex items-center gap-3.5 hover:border-amber-400/50 transition-all">
-        <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/50 flex items-center justify-center text-xl shrink-0">
-          ${d.is_anonymous ? '🐾' : '❤️'}
+      <div class="p-3.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-2xs flex items-center gap-3 hover:border-stone-400 dark:hover:border-stone-700 transition-all">
+        <div class="w-9 h-9 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 flex items-center justify-center font-bold text-xs shrink-0">
+          ${d.is_anonymous ? 'PAW' : (d.donor_name ? d.donor_name.charAt(0).toUpperCase() : 'G')}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-1">
-            <h4 class="text-sm font-bold text-stone-900 dark:text-white truncate">
+            <h4 class="text-xs font-bold text-stone-900 dark:text-white truncate">
               ${d.donor_name || 'Anonymous Angel'}
             </h4>
-            <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
+            <span class="text-xs font-black text-emerald-700 dark:text-emerald-400 font-mono">
               ৳${Number(d.amount).toLocaleString()}
             </span>
           </div>
-          <div class="flex items-center justify-between mt-1 text-[11px]">
-            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 font-medium truncate">
-              ${d.badge || 'Paw Protector 🌟'}
+          <div class="flex items-center justify-between mt-0.5 text-[10px]">
+            <span class="text-stone-500 capitalize">
+              ${(d.donation_mode || 'general').replace('_', ' ')}
             </span>
-            <span class="text-stone-400 text-[10px]">
-              ${d.donation_mode === 'spay_neuter' ? 'Spay/Neuter Fund' : (d.donation_mode === 'sponsor' ? 'Sponsor' : 'Sanctuary')}
+            <span class="text-stone-400 font-mono">
+              ${d.transaction_reference ? '#' + d.transaction_reference.slice(0, 8) : ''}
             </span>
           </div>
         </div>

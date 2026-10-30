@@ -1,4 +1,6 @@
 ---
+import Icon from './Icon.astro';
+
 interface Props {
   animal: {
     id: string;
@@ -23,93 +25,99 @@ const sponsorshipPercent = Math.min(100, Math.round(((animal.current_sponsorship
 const isCat = animal.species.toLowerCase() === 'cat';
 ---
 
-<div class="group flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all duration-300">
+<div class="group flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xs hover:border-stone-400 dark:hover:border-stone-600 transition-all duration-200 hover:-translate-y-1">
   
   <!-- Image Banner -->
-  <div class="relative w-full h-56 sm:h-64 overflow-hidden bg-stone-100 dark:bg-stone-800">
+  <div class="relative w-full h-52 sm:h-60 overflow-hidden bg-stone-100 dark:bg-stone-800">
     <img 
       src={animal.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'} 
       alt={animal.name}
       loading="lazy"
-      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
       onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'"
     />
-    <div class="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent"></div>
 
-    <!-- Species & Status Badges on Image -->
+    <!-- Species & Medical Badges (Clean vector icons) -->
     <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/95 dark:bg-stone-900/95 text-stone-900 dark:text-stone-100 shadow-xs backdrop-blur-xs">
-        <span>{isCat ? '🐱' : '🐶'}</span>
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/95 dark:bg-stone-900/95 text-stone-900 dark:text-stone-100 shadow-2xs backdrop-blur-xs">
+        <Icon name={isCat ? 'cat' : 'dog'} class="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
         <span class="capitalize">{animal.species}</span>
       </span>
 
       {animal.needs_spay_neuter && (
-        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500 text-stone-950 shadow-xs animate-pulse">
-          <span>✂️</span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500 text-stone-950 shadow-2xs">
+          <Icon name="scissors" class="w-3.5 h-3.5" />
           <span>Needs Spaying</span>
         </span>
       )}
 
       {animal.is_spayed_neutered && (
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-600/90 text-white shadow-xs">
-          <span>✓</span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-emerald-700 text-white shadow-2xs">
+          <Icon name="check" class="w-3 h-3" />
           <span>Sterilized</span>
         </span>
       )}
     </div>
 
-    <!-- Pet Name & Quick Meta overlay -->
+    <!-- Pet Name & Info Overlay -->
     <div class="absolute bottom-3 left-4 right-4">
-      <h3 class="text-xl font-bold text-white tracking-tight drop-shadow-sm flex items-center justify-between">
-        <span>{animal.name}</span>
-        <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-stone-900/60 text-stone-200 backdrop-blur-xs">
-          {animal.gender === 'male' ? '♂ Boy' : animal.gender === 'female' ? '♀ Girl' : 'Pup'} • {animal.age}
-        </span>
-      </h3>
+      <div class="flex items-end justify-between">
+        <div>
+          <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight drop-shadow-xs">
+            {animal.name}
+          </h3>
+          <span class="text-xs text-stone-300">
+            {animal.gender === 'male' ? 'Male' : animal.gender === 'female' ? 'Female' : 'Pup'} • {animal.age}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Content & Story -->
-  <div class="p-5 flex-1 flex flex-col justify-between">
+  <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
     <div>
-      <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3">
+      <p class="text-xs text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3">
         {animal.story}
       </p>
 
-      <!-- Monthly Sponsorship Progress -->
-      <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800/80">
-        <div class="flex items-center justify-between text-xs font-medium text-stone-500 dark:text-stone-400 mb-1.5">
-          <span>Monthly Care Goal</span>
-          <span class="font-semibold text-stone-900 dark:text-stone-200">
+      <!-- Monthly Care Funding Bar -->
+      <div class="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800">
+        <div class="flex items-center justify-between text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1">
+          <span>Monthly Sponsorship</span>
+          <span class="text-stone-800 dark:text-stone-200">
             ৳{(animal.current_sponsorship_funded || 0).toLocaleString()} / ৳{(animal.monthly_sponsorship_goal || 1000).toLocaleString()}
           </span>
         </div>
-        <div class="w-full h-2 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden">
+        <div class="w-full h-1.5 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden">
           <div 
-            class="h-full bg-emerald-500 rounded-full transition-all duration-500"
+            class="h-full bg-emerald-700 dark:bg-emerald-500 rounded-full"
             style={`width: ${sponsorshipPercent}%`}
           ></div>
         </div>
       </div>
     </div>
 
-    <!-- Interactive Donation Buttons -->
-    <div class="mt-5 pt-3 grid grid-cols-1 gap-2">
+    <!-- Interactive Donation Action Buttons -->
+    <div class="mt-4 pt-2 space-y-2">
       <!-- Sponsor Button -->
       <button
         onclick={`window.openDonationModal({ mode: 'sponsor', animalId: '${animal.id}', animalName: '${animal.name}', amount: ${animal.monthly_sponsorship_goal || 1000} })`}
-        class="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white flex items-center justify-center gap-1.5 shadow-xs transition-all"
+        class="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 flex items-center justify-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 transition-all"
       >
-        <span>🌟 Sponsor {animal.name} (৳{(animal.monthly_sponsorship_goal || 1000).toLocaleString()}/mo)</span>
+        <Icon name="paw" class="w-3.5 h-3.5" />
+        <span>Sponsor {animal.name} (৳{(animal.monthly_sponsorship_goal || 1000).toLocaleString()}/mo)</span>
       </button>
 
-      <!-- Spay/Neuter Button if needed -->
+      <!-- Spay/Neuter Button -->
       {animal.needs_spay_neuter && (
         <button
           onclick={`window.openDonationModal({ mode: 'spay_neuter', animalId: '${animal.id}', animalName: '${animal.name}', amount: ${animal.spay_neuter_cost || 1500} })`}
-          class="w-full py-2 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 flex items-center justify-center gap-1.5 transition-all"
+          class="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center gap-1.5 transition-colors"
         >
-          <span>✂️ Fund {animal.name}'s Surgery (৳{(animal.spay_neuter_cost || 1500).toLocaleString()})</span>
+          <Icon name="scissors" class="w-3.5 h-3.5" />
+          <span>Fund Surgery (৳{(animal.spay_neuter_cost || 1500).toLocaleString()})</span>
         </button>
       )}
     </div>
