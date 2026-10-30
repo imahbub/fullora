@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import ShelterMeter from '../components/ShelterMeter.astro';
 import AnimalCard from '../components/AnimalCard.astro';
 import WallOfHeroes from '../components/WallOfHeroes.astro';
-import { DEMO_ANIMALS } from '../lib/supabase.js';
+import { DEMO_ANIMALS } from '../lib/data.js';
 
 // Show first 3 featured animals on homepage
 const featuredAnimals = DEMO_ANIMALS.filter(a => a.is_featured).slice(0, 3);
