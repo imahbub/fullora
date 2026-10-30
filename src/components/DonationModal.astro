@@ -372,6 +372,52 @@
     const modal = document.getElementById('donation-modal');
     modal?.classList.remove('hidden');
 
+    // Dynamically load shelter settings from localStorage / defaults
+    try {
+      const saved = JSON.parse(localStorage.getItem('fullora_shelter_settings') || '{}');
+      if (saved.bkash) {
+        const bk = document.getElementById('bkash-num');
+        if (bk) bk.textContent = saved.bkash;
+      }
+      if (saved.nagad) {
+        const ng = document.getElementById('nagad-num');
+        if (ng) ng.textContent = saved.nagad;
+      }
+      if (saved.rocket) {
+        const rk = document.getElementById('rocket-num');
+        if (rk) rk.textContent = saved.rocket;
+      }
+      if (saved.bankName) {
+        const bn = document.getElementById('bank-name-val');
+        if (bn) bn.textContent = saved.bankName;
+      }
+      if (saved.bankAccName) {
+        const ban = document.getElementById('bank-acc-name-val');
+        if (ban) ban.textContent = saved.bankAccName;
+      }
+      if (saved.bankAccNum) {
+        const bac = document.getElementById('bank-acc-num-val');
+        if (bac) bac.textContent = saved.bankAccNum;
+      }
+    } catch (e) {}
+
+    // Dynamically populate animals into the dropdown
+    try {
+      const animalSelect = document.getElementById('animal-select') as HTMLSelectElement;
+      if (animalSelect) {
+        let allAnimals = [...(window.shelterAnimalsList || [])];
+        const local = JSON.parse(localStorage.getItem('fullora_local_animals') || '[]');
+        if (local.length > 0) {
+          const ids = new Set(local.map((a: any) => a.id));
+          allAnimals = [...local, ...allAnimals.filter(a => !ids.has(a.id))];
+        }
+        if (allAnimals.length > 0) {
+          animalSelect.innerHTML = '<option value="">General Sanctuary Care (All Cats & Dogs)</option>' +
+            allAnimals.map((a: any) => `<option value="${a.id}">${a.name} (${a.species === 'cat' ? 'Cat' : 'Dog'}${a.needs_spay_neuter ? ' • Needs Spaying' : ''})</option>`).join('');
+        }
+      }
+    } catch (e) {}
+
     if (options.mode) {
       window.switchDonationMode(options.mode);
     }
@@ -417,10 +463,15 @@
     if (mode === 'sponsor' || mode === 'spay_neuter') {
       animalSelectContainer?.classList.remove('hidden');
       frequencyContainer?.classList.add('hidden');
+      
+      const saved = JSON.parse(localStorage.getItem('fullora_shelter_settings') || '{}');
+      const defaultSpay = saved.spayCost ? parseFloat(saved.spayCost) : 1500;
+      const defaultSponsor = saved.sponsorCost ? parseFloat(saved.sponsorCost) : 1000;
+
       if (mode === 'spay_neuter') {
-        window.selectAmount(1500);
+        window.selectAmount(defaultSpay);
       } else {
-        window.selectAmount(1000);
+        window.selectAmount(defaultSponsor);
       }
     } else {
       animalSelectContainer?.classList.add('hidden');

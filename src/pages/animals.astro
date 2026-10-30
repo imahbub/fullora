@@ -167,4 +167,84 @@ import { DEMO_ANIMALS } from '../lib/data.js';
       noMsg?.classList.add('hidden');
     }
   }
+
+  // Sync client-side additions/edits/deletions from Admin panel
+  function syncClientAnimals() {
+    try {
+      const deletedIds = new Set(JSON.parse(localStorage.getItem('fullora_deleted_animals') || '[]'));
+      const local = JSON.parse(localStorage.getItem('fullora_local_animals') || '[]');
+      
+      const grid = document.getElementById('animals-grid');
+      if (!grid) return;
+
+      // Hide deleted default animals
+      deletedIds.forEach(id => {
+        const el = document.querySelector(`button[onclick*="${id}"]`)?.closest('.animal-item');
+        el?.remove();
+      });
+
+      // Prepend or update local animals
+      if (local.length > 0) {
+        local.forEach(a => {
+          // Remove if already in DOM (e.g. edited demo pet)
+          const existing = document.querySelector(`button[onclick*="${a.id}"]`)?.closest('.animal-item');
+          if (existing) existing.remove();
+
+          const cardWrapper = document.createElement('div');
+          cardWrapper.className = 'animal-item';
+          cardWrapper.setAttribute('data-species', a.species);
+          cardWrapper.setAttribute('data-needs-spay', a.needs_spay_neuter ? 'true' : 'false');
+          cardWrapper.setAttribute('data-name', a.name.toLowerCase());
+
+          const isCat = a.species === 'cat';
+          const sponsorshipPercent = Math.min(100, Math.round(((a.current_sponsorship_funded || 0) / (a.monthly_sponsorship_goal || 1000)) * 100));
+
+          cardWrapper.innerHTML = `
+            <div class="group flex flex-col rounded-3xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md hover:border-emerald-500/40 transition-all duration-300">
+              <div class="relative w-full h-56 sm:h-64 overflow-hidden bg-stone-100 dark:bg-stone-800">
+                <img src="${a.image_url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'}" alt="${a.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent"></div>
+                <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/95 dark:bg-stone-900/95 text-stone-900 dark:text-stone-100 shadow-xs">
+                    <span>${isCat ? '🐱' : '🐶'}</span>
+                    <span class="capitalize">${a.species}</span>
+                  </span>
+                  ${a.needs_spay_neuter ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500 text-stone-950 shadow-xs animate-pulse"><span>✂️</span><span>Needs Spaying</span></span>' : ''}
+                </div>
+                <div class="absolute bottom-3 left-4 right-4">
+                  <h3 class="text-xl font-bold text-white tracking-tight drop-shadow-sm flex items-center justify-between">
+                    <span>${a.name}</span>
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-md bg-stone-900/60 text-stone-200">${a.age || 'Young'}</span>
+                  </h3>
+                </div>
+              </div>
+              <div class="p-5 flex-1 flex flex-col justify-between">
+                <div>
+                  <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed line-clamp-3">${a.story || 'Rescue resident.'}</p>
+                  <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800/80">
+                    <div class="flex items-center justify-between text-xs font-medium text-stone-500 dark:text-stone-400 mb-1.5">
+                      <span>Monthly Care Goal</span>
+                      <span class="font-semibold text-stone-900 dark:text-stone-200">৳${(a.current_sponsorship_funded || 0).toLocaleString()} / ৳${(a.monthly_sponsorship_goal || 1000).toLocaleString()}</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden">
+                      <div class="h-full bg-emerald-500 rounded-full" style="width: ${sponsorshipPercent}%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-5 pt-3 grid grid-cols-1 gap-2">
+                  <button onclick="window.openDonationModal({ mode: 'sponsor', animalId: '${a.id}', animalName: '${a.name}', amount: ${a.monthly_sponsorship_goal || 1000} })" class="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 transition-all">
+                    <span>🌟 Sponsor ${a.name} (৳${(a.monthly_sponsorship_goal || 1000).toLocaleString()}/mo)</span>
+                  </button>
+                  ${a.needs_spay_neuter ? `<button onclick="window.openDonationModal({ mode: 'spay_neuter', animalId: '${a.id}', animalName: '${a.name}', amount: ${a.spay_neuter_cost || 1500} })" class="w-full py-2 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 flex items-center justify-center gap-1.5"><span>✂️ Fund ${a.name}'s Surgery (৳${(a.spay_neuter_cost || 1500).toLocaleString()})</span></button>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+          grid.prepend(cardWrapper);
+        });
+      }
+    } catch (e) {}
+  }
+
+  syncClientAnimals();
 </script>
