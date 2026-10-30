@@ -82,11 +82,12 @@ import Layout from '../layouts/Layout.astro';
         <!-- TAB 1: TRANSACTIONS AUDIT & EDIT DESK -->
         <!-- ============================================== -->
         <div id="admin-tab-transactions" class="space-y-4">
-          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div class="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 class="font-bold text-lg text-stone-900 dark:text-white">Transaction Review & Verification Desk</h3>
-                <p class="text-xs text-stone-500 dark:text-stone-400">Match submitted wallet numbers & TrxIDs with your mobile banking/bank statement to verify. You can edit or delete entries anytime.</p>
+                <p class="text-xs text-stone-500 dark:text-stone-400">Transactions are organized by month. Filter by status, payment channel, or search donor/TrxID.</p>
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="window.loadDonationsList()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300">
@@ -95,25 +96,80 @@ import Layout from '../layouts/Layout.astro';
               </div>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-stone-50 dark:bg-stone-800/60 text-stone-500 uppercase tracking-wider font-semibold border-b border-stone-200 dark:border-stone-800">
-                  <tr>
-                    <th class="py-3 px-4">Date</th>
-                    <th class="py-3 px-4">Donor / Status</th>
-                    <th class="py-3 px-4">Mode</th>
-                    <th class="py-3 px-4">Channel</th>
-                    <th class="py-3 px-4">Sender Wallet / Account</th>
-                    <th class="py-3 px-4">TrxID / Reference</th>
-                    <th class="py-3 px-4">Amount</th>
-                    <th class="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="transactions-table-body" class="divide-y divide-stone-100 dark:divide-stone-800">
-                  <!-- Injected via client script -->
-                </tbody>
-              </table>
+            <!-- Month & Multi-Criteria Filtering Controls -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/80">
+              
+              <!-- Month Filter -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">Month Period</label>
+                <select id="admin-filter-month" onchange="window.applyTransactionFilters()" class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-bold text-stone-900 dark:text-stone-100 outline-hidden">
+                  <option value="all">All Months</option>
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">Status</label>
+                <select id="admin-filter-status" onchange="window.applyTransactionFilters()" class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-900 dark:text-stone-100 outline-hidden">
+                  <option value="all">All Statuses</option>
+                  <option value="pending">⏳ Pending Audit</option>
+                  <option value="verified">✓ Verified</option>
+                  <option value="rejected">✕ Rejected</option>
+                </select>
+              </div>
+
+              <!-- Cause / Mode Filter -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">Cause / Mode</label>
+                <select id="admin-filter-mode" onchange="window.applyTransactionFilters()" class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-900 dark:text-stone-100 outline-hidden">
+                  <option value="all">All Causes</option>
+                  <option value="once">Food & Care (Once)</option>
+                  <option value="monthly">Monthly Sustainer</option>
+                  <option value="sponsor">Resident Sponsor</option>
+                  <option value="spay_neuter">Spay / Neuter Fund</option>
+                </select>
+              </div>
+
+              <!-- Channel Filter -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">Channel</label>
+                <select id="admin-filter-channel" onchange="window.applyTransactionFilters()" class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-900 dark:text-stone-100 outline-hidden">
+                  <option value="all">All Channels</option>
+                  <option value="mfs">Mobile Wallet (MFS)</option>
+                  <option value="bank">Bank Transfer</option>
+                </select>
+              </div>
+
+              <!-- Search Text -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-1">Search Keyword</label>
+                <input 
+                  type="text" 
+                  id="admin-filter-search" 
+                  placeholder="Donor, TrxID, wallet..." 
+                  oninput="window.applyTransactionFilters()"
+                  class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs text-stone-900 dark:text-white outline-hidden"
+                />
+              </div>
+
             </div>
+
+            <!-- Month Stats Summary Pill -->
+            <div id="admin-month-summary-bar" class="flex flex-wrap items-center justify-between text-xs py-2 px-3 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+              <span id="summary-month-name" class="font-bold text-stone-900 dark:text-white">Showing: All Months</span>
+              <div class="flex items-center gap-4">
+                <span>Total: <strong id="summary-total-amt" class="text-emerald-700 dark:text-emerald-400 font-mono">৳0</strong></span>
+                <span>Verified: <strong id="summary-verified-count" class="text-stone-900 dark:text-white">0</strong></span>
+                <span>Pending: <strong id="summary-pending-count" class="text-amber-600">0</strong></span>
+              </div>
+            </div>
+
+            <!-- Monthly Divided Transactions Container -->
+            <div id="monthly-transactions-container" class="space-y-6">
+              <!-- Rendered via script grouped by month -->
+            </div>
+
           </div>
         </div>
 
@@ -540,12 +596,24 @@ import Layout from '../layouts/Layout.astro';
   };
 
   // ==========================================
-  // TRANSACTIONS DESK (EDIT & DELETE INCLUDED)
+  // TRANSACTIONS DESK (MONTHLY DIVISION & FILTERS)
   // ==========================================
-  window.loadDonationsList = async function() {
-    const tbody = document.getElementById('transactions-table-body');
-    if (!tbody) return;
+  let allAdminDonations: any[] = [];
 
+  function getDonationMonthKey(dateStr: string) {
+    const d = new Date(dateStr || Date.now());
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  function getDonationMonthLabel(key: string) {
+    const [year, month] = key.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+
+  window.loadDonationsList = async function() {
     let donations = [...DEMO_DONATIONS];
     try {
       const local = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
@@ -555,7 +623,6 @@ import Layout from '../layouts/Layout.astro';
     try {
       const { data } = await supabase.from('donations').select('*').order('created_at', { ascending: false });
       if (data && data.length > 0) {
-        // Merge Supabase with local (deduplicate by id or transaction_reference)
         const seen = new Set();
         const combined = [...data, ...donations].filter(item => {
           const key = item.id || item.transaction_reference;
@@ -567,46 +634,200 @@ import Layout from '../layouts/Layout.astro';
       }
     } catch (e) {}
 
+    allAdminDonations = donations;
+
+    // Update pending count badge on tab
     const pendingCount = donations.filter((d: any) => d.status === 'pending').length;
     const countEl = document.getElementById('pending-count');
     if (countEl) countEl.textContent = pendingCount.toString();
 
-    tbody.innerHTML = donations.map((d: any) => `
-      <tr class="hover:bg-stone-50/50 dark:hover:bg-stone-800/40 transition-colors">
-        <td class="py-3 px-4 text-stone-500">${new Date(d.created_at || Date.now()).toLocaleDateString()}</td>
-        <td class="py-3 px-4">
-          <div class="font-bold text-stone-900 dark:text-white">${d.donor_name || 'Anonymous Angel'}</div>
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm text-[10px] font-semibold ${
-            d.status === 'verified' 
-              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
-              : (d.status === 'rejected' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300')
-          }">
-            ${d.status === 'verified' ? '✓ Verified' : (d.status === 'rejected' ? '✕ Rejected' : '⏳ Pending')}
-          </span>
-        </td>
-        <td class="py-3 px-4 capitalize font-medium text-stone-700 dark:text-stone-300">${(d.donation_mode || 'once').replace('_', ' ')}</td>
-        <td class="py-3 px-4 uppercase font-semibold text-stone-600 dark:text-stone-400">${d.payment_type || 'mfs'}</td>
-        <td class="py-3 px-4 font-mono">${d.sender_wallet_or_account || '017XXXXXXXX'}</td>
-        <td class="py-3 px-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">${d.transaction_reference}</td>
-        <td class="py-3 px-4 font-bold text-stone-900 dark:text-white">৳${Number(d.amount).toLocaleString()}</td>
-        <td class="py-3 px-4 text-right">
-          <div class="flex items-center justify-end gap-1.5">
-            ${d.status === 'pending' ? `
-              <button onclick="window.verifyDonation('${d.id}')" class="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all">
-                Approve
-              </button>
-            ` : ''}
-            <button onclick='window.openEditTransactionModal(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="p-1 rounded-md hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300" title="Edit Entry">
-              ✏️
-            </button>
-            <button onclick="window.deleteDonation('${d.id}')" class="p-1 rounded-md hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600" title="Delete Entry">
-              🗑️
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    populateAdminMonths();
+    window.applyTransactionFilters();
   };
+
+  function populateAdminMonths() {
+    const select = document.getElementById('admin-filter-month') as HTMLSelectElement;
+    if (!select) return;
+
+    const currentKey = getDonationMonthKey(new Date().toISOString());
+    const monthsSet = new Set<string>();
+    monthsSet.add(currentKey);
+
+    allAdminDonations.forEach(d => {
+      if (d.created_at) monthsSet.add(getDonationMonthKey(d.created_at));
+    });
+
+    const sorted = Array.from(monthsSet).sort().reverse();
+
+    let options = '<option value="all">All Months</option>';
+    sorted.forEach(mKey => {
+      const isCurrent = mKey === currentKey;
+      options += `<option value="${mKey}">${getDonationMonthLabel(mKey)} ${isCurrent ? '(Current)' : ''}</option>`;
+    });
+
+    const prevVal = select.value;
+    select.innerHTML = options;
+    if (prevVal) select.value = prevVal;
+  }
+
+  window.applyTransactionFilters = function() {
+    const monthFilter = (document.getElementById('admin-filter-month') as HTMLSelectElement)?.value || 'all';
+    const statusFilter = (document.getElementById('admin-filter-status') as HTMLSelectElement)?.value || 'all';
+    const modeFilter = (document.getElementById('admin-filter-mode') as HTMLSelectElement)?.value || 'all';
+    const channelFilter = (document.getElementById('admin-filter-channel') as HTMLSelectElement)?.value || 'all';
+    const searchTerm = ((document.getElementById('admin-filter-search') as HTMLInputElement)?.value || '').toLowerCase().trim();
+
+    let filtered = allAdminDonations.filter((d: any) => {
+      // Month
+      if (monthFilter !== 'all') {
+        const mKey = getDonationMonthKey(d.created_at);
+        if (mKey !== monthFilter) return false;
+      }
+
+      // Status
+      if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+
+      // Mode
+      if (modeFilter !== 'all' && d.donation_mode !== modeFilter) return false;
+
+      // Channel
+      if (channelFilter !== 'all' && d.payment_type !== channelFilter) return false;
+
+      // Search keyword (donor name, ref, wallet)
+      if (searchTerm) {
+        const name = (d.donor_name || '').toLowerCase();
+        const ref = (d.transaction_reference || '').toLowerCase();
+        const wallet = (d.sender_wallet_or_account || '').toLowerCase();
+        if (!name.includes(searchTerm) && !ref.includes(searchTerm) && !wallet.includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Update summary bar
+    const totalAmt = filtered.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+    const verifiedCount = filtered.filter(d => d.status === 'verified').length;
+    const pendingCount = filtered.filter(d => d.status === 'pending').length;
+
+    const summaryMonth = document.getElementById('summary-month-name');
+    const summaryAmt = document.getElementById('summary-total-amt');
+    const summaryVer = document.getElementById('summary-verified-count');
+    const summaryPen = document.getElementById('summary-pending-count');
+
+    if (summaryMonth) summaryMonth.textContent = monthFilter === 'all' ? 'Showing: All Months' : `Showing: ${getDonationMonthLabel(monthFilter)}`;
+    if (summaryAmt) summaryAmt.textContent = `৳${totalAmt.toLocaleString()}`;
+    if (summaryVer) summaryVer.textContent = verifiedCount.toString();
+    if (summaryPen) summaryPen.textContent = pendingCount.toString();
+
+    renderMonthlyDividedGroups(filtered);
+  };
+
+  function renderMonthlyDividedGroups(donations: any[]) {
+    const container = document.getElementById('monthly-transactions-container');
+    if (!container) return;
+
+    if (donations.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-10 bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 text-stone-400 text-xs">
+          No transactions match your selected filters.
+        </div>
+      `;
+      return;
+    }
+
+    // Group by month
+    const groups: Record<string, any[]> = {};
+    donations.forEach(d => {
+      const key = getDonationMonthKey(d.created_at);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(d);
+    });
+
+    const sortedMonthKeys = Object.keys(groups).sort().reverse();
+
+    container.innerHTML = sortedMonthKeys.map(mKey => {
+      const items = groups[mKey];
+      const monthTotal = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const monthLabel = getDonationMonthLabel(mKey);
+
+      return `
+        <div class="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden shadow-2xs">
+          
+          <!-- Month Divider Header -->
+          <div class="px-4 py-3 bg-stone-50 dark:bg-stone-800/60 border-b border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+              <h4 class="font-bold text-xs sm:text-sm text-stone-900 dark:text-white">${monthLabel}</h4>
+              <span class="text-[10px] px-2 py-0.5 rounded-md bg-stone-200/80 dark:bg-stone-700 font-semibold text-stone-700 dark:text-stone-300">
+                ${items.length} ${items.length === 1 ? 'record' : 'records'}
+              </span>
+            </div>
+            <div class="text-xs font-semibold text-stone-600 dark:text-stone-300">
+              Month Total: <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400">৳${monthTotal.toLocaleString()}</span>
+            </div>
+          </div>
+
+          <!-- Transactions Table for this Month -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-stone-50/50 dark:bg-stone-800/30 text-stone-400 uppercase tracking-wider font-semibold border-b border-stone-100 dark:border-stone-800 text-[10px]">
+                <tr>
+                  <th class="py-2.5 px-4">Date</th>
+                  <th class="py-2.5 px-4">Donor / Status</th>
+                  <th class="py-2.5 px-4">Mode</th>
+                  <th class="py-2.5 px-4">Channel</th>
+                  <th class="py-2.5 px-4">Sender Wallet / Account</th>
+                  <th class="py-2.5 px-4">TrxID / Reference</th>
+                  <th class="py-2.5 px-4">Amount</th>
+                  <th class="py-2.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-100 dark:divide-stone-800">
+                ${items.map(d => `
+                  <tr class="hover:bg-stone-50/60 dark:hover:bg-stone-800/40 transition-colors">
+                    <td class="py-3 px-4 text-stone-500 font-mono text-[11px]">${new Date(d.created_at || Date.now()).toLocaleDateString()}</td>
+                    <td class="py-3 px-4">
+                      <div class="font-bold text-stone-900 dark:text-white">${d.donor_name || 'Anonymous Angel'}</div>
+                      <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm text-[10px] font-semibold ${
+                        d.status === 'verified' 
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
+                          : (d.status === 'rejected' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300')
+                      }">
+                        ${d.status === 'verified' ? '✓ Verified' : (d.status === 'rejected' ? '✕ Rejected' : '⏳ Pending')}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 capitalize font-medium text-stone-700 dark:text-stone-300">${(d.donation_mode || 'once').replace('_', ' ')}</td>
+                    <td class="py-3 px-4 uppercase font-semibold text-stone-600 dark:text-stone-400">${d.payment_type || 'mfs'}</td>
+                    <td class="py-3 px-4 font-mono">${d.sender_wallet_or_account || '017XXXXXXXX'}</td>
+                    <td class="py-3 px-4 font-mono font-bold text-emerald-700 dark:text-emerald-400">${d.transaction_reference}</td>
+                    <td class="py-3 px-4 font-bold text-stone-900 dark:text-white font-mono">৳${Number(d.amount).toLocaleString()}</td>
+                    <td class="py-3 px-4 text-right">
+                      <div class="flex items-center justify-end gap-1.5">
+                        ${d.status === 'pending' ? `
+                          <button onclick="window.verifyDonation('${d.id}')" class="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all">
+                            Approve
+                          </button>
+                        ` : ''}
+                        <button onclick='window.openEditTransactionModal(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="p-1 rounded-md hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300" title="Edit Entry">
+                          ✏️
+                        </button>
+                        <button onclick="window.deleteDonation('${d.id}')" class="p-1 rounded-md hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600" title="Delete Entry">
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      `;
+    }).join('');
+  }
 
   window.verifyDonation = async function(id: string) {
     try {

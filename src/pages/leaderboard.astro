@@ -11,7 +11,7 @@ import Icon from '../components/Icon.astro';
       
       <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 mb-3">
         <Icon name="trophy" class="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-        <span>Community Wall of Heroes</span>
+        <span>Monthly Community Wall of Heroes</span>
       </div>
 
       <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 dark:text-white tracking-tight">
@@ -19,21 +19,36 @@ import Icon from '../components/Icon.astro';
       </h1>
 
       <p class="mt-3 text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-xl mx-auto leading-relaxed">
-        Honoring the individuals and anonymous angels whose generosity feeds, heals, and shelters rescued cats and dogs in Bangladesh.
+        Resets on the 1st of every month to give every supporter a fresh chance to lead the shelter's care initiatives.
       </p>
 
-      <!-- Quick Metrics Bar -->
-      <div class="grid grid-cols-3 gap-3 max-w-xl mx-auto mt-8 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/80">
+      <!-- Month Selector & Period Badge -->
+      <div class="flex items-center justify-center gap-2 mt-5">
+        <label for="month-select" class="text-xs font-bold text-stone-500">Period:</label>
+        <select 
+          id="month-select" 
+          onchange="window.handleMonthChange(this.value)"
+          class="px-3 py-1.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold text-stone-900 dark:text-stone-100 outline-hidden focus:ring-1 focus:ring-emerald-600 cursor-pointer shadow-2xs"
+        >
+          <!-- Injected via script: Current Month, Past Months, All-Time -->
+        </select>
+        <span class="text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 font-semibold" id="period-status-pill">
+          Active Month
+        </span>
+      </div>
+
+      <!-- Quick Metrics Bar (Reflects Selected Month) -->
+      <div class="grid grid-cols-3 gap-3 max-w-xl mx-auto mt-7 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/80">
         <div>
-          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Total Raised</div>
+          <div class="text-[11px] text-stone-400 uppercase tracking-wider font-bold">Month Total</div>
           <div class="text-base sm:text-lg font-black text-stone-900 dark:text-white mt-0.5" id="metric-total-amount">৳0</div>
         </div>
         <div class="border-x border-stone-200 dark:border-stone-700">
-          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Active Donors</div>
+          <div class="text-[11px] text-stone-400 uppercase tracking-wider font-bold">Active Donors</div>
           <div class="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 mt-0.5" id="metric-total-donors">0</div>
         </div>
         <div>
-          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Surgeries Funded</div>
+          <div class="text-[11px] text-stone-400 uppercase tracking-wider font-bold">Surgeries Funded</div>
           <div class="text-base sm:text-lg font-black text-amber-700 dark:text-amber-400 mt-0.5" id="metric-total-surgeries">0</div>
         </div>
       </div>
@@ -60,7 +75,7 @@ import Icon from '../components/Icon.astro';
             id="tab-btn-ranked"
             class="px-3.5 py-1.5 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-2xs transition-all"
           >
-            Top Guardians (Ranked)
+            Top Guardians
           </button>
           <button 
             type="button" 
@@ -104,7 +119,7 @@ import Icon from '../components/Icon.astro';
                 <th class="py-3 px-4">Honorary Badge</th>
                 <th class="py-3 px-4">Primary Cause</th>
                 <th class="py-3 px-4 text-center">Gifts</th>
-                <th class="py-3 px-4 text-right">Total Contributed</th>
+                <th class="py-3 px-4 text-right">Contributed</th>
               </tr>
             </thead>
             <tbody id="leaderboard-table-body" class="divide-y divide-stone-100 dark:divide-stone-800">
@@ -117,7 +132,7 @@ import Icon from '../components/Icon.astro';
       <!-- Call to Action Banner -->
       <div class="mt-10 p-6 rounded-2xl bg-gradient-to-r from-emerald-800 to-teal-800 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
         <div class="space-y-1 text-center sm:text-left">
-          <h3 class="font-bold text-base sm:text-lg">Want to be featured on our Wall of Heroes?</h3>
+          <h3 class="font-bold text-base sm:text-lg">Want to be featured on this month's Leaderboard?</h3>
           <p class="text-xs text-emerald-100 max-w-md">Every contribution directly buys food, flea medicine, and sterilizations for stray cats and dogs.</p>
         </div>
         <button 
@@ -139,7 +154,21 @@ import Icon from '../components/Icon.astro';
 
   let currentTab = 'ranked';
   let searchTerm = '';
+  let selectedMonth = 'current'; // 'current', 'all', or 'YYYY-MM'
   let allRawDonations: any[] = [];
+
+  function getMonthKey(dateStr: string) {
+    const d = new Date(dateStr || Date.now());
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  function getMonthLabel(key: string) {
+    const [year, month] = key.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
 
   async function initLeaderboard() {
     let donations = [...DEMO_DONATIONS];
@@ -164,25 +193,58 @@ import Icon from '../components/Icon.astro';
     } catch (e) {}
 
     allRawDonations = donations;
-    calculateMetrics(donations);
+    populateMonthSelector();
     renderLeaderboard();
   }
 
-  function calculateMetrics(donations: any[]) {
-    const totalAmount = donations.reduce((sum, d) => sum + Number(d.amount || 0), 0);
-    const surgeryCount = donations.filter(d => d.donation_mode === 'spay_neuter').length;
+  function populateMonthSelector() {
+    const select = document.getElementById('month-select') as HTMLSelectElement;
+    if (!select) return;
 
-    // Unique donor count
-    const names = new Set(donations.map(d => d.donor_name || 'Anonymous'));
+    const currentKey = getMonthKey(new Date().toISOString());
+    const monthsSet = new Set<string>();
+    monthsSet.add(currentKey);
 
-    const amountEl = document.getElementById('metric-total-amount');
-    const donorsEl = document.getElementById('metric-total-donors');
-    const surgeryEl = document.getElementById('metric-total-surgeries');
+    allRawDonations.forEach(d => {
+      if (d.created_at) {
+        monthsSet.add(getMonthKey(d.created_at));
+      }
+    });
 
-    if (amountEl) amountEl.textContent = `৳${totalAmount.toLocaleString()}`;
-    if (donorsEl) donorsEl.textContent = names.size.toString();
-    if (surgeryEl) surgeryEl.textContent = surgeryCount.toString();
+    const sortedMonths = Array.from(monthsSet).sort().reverse();
+
+    let optionsHtml = '';
+    sortedMonths.forEach(mKey => {
+      const isCurrent = mKey === currentKey;
+      const label = getMonthLabel(mKey);
+      optionsHtml += `<option value="${mKey}">${label} ${isCurrent ? '(Current Month)' : ''}</option>`;
+    });
+    optionsHtml += `<option value="all">All-Time Hall of Fame</option>`;
+
+    select.innerHTML = optionsHtml;
+    selectedMonth = currentKey;
   }
+
+  window.handleMonthChange = function(monthVal: string) {
+    selectedMonth = monthVal;
+    
+    const pill = document.getElementById('period-status-pill');
+    const currentKey = getMonthKey(new Date().toISOString());
+    if (pill) {
+      if (selectedMonth === currentKey) {
+        pill.textContent = 'Active Month';
+        pill.className = 'text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 font-semibold';
+      } else if (selectedMonth === 'all') {
+        pill.textContent = 'All-Time Records';
+        pill.className = 'text-[11px] text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800/60 font-semibold';
+      } else {
+        pill.textContent = 'Archived Month';
+        pill.className = 'text-[11px] text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-700 font-semibold';
+      }
+    }
+
+    renderLeaderboard();
+  };
 
   window.setLeaderboardTab = function(tab: string) {
     currentTab = tab;
@@ -211,12 +273,31 @@ import Icon from '../components/Icon.astro';
     const podium = document.getElementById('podium-container');
     if (!tbody) return;
 
+    // Filter donations by selected month
+    let filteredDonations = allRawDonations;
+    if (selectedMonth !== 'all') {
+      filteredDonations = allRawDonations.filter(d => getMonthKey(d.created_at || new Date().toISOString()) === selectedMonth);
+    }
+
+    // Update monthly metrics
+    const totalAmount = filteredDonations.reduce((sum, d) => sum + Number(d.amount || 0), 0);
+    const surgeryCount = filteredDonations.filter(d => d.donation_mode === 'spay_neuter').length;
+    const uniqueDonors = new Set(filteredDonations.map(d => d.donor_name || 'Anonymous'));
+
+    const amountEl = document.getElementById('metric-total-amount');
+    const donorsEl = document.getElementById('metric-total-donors');
+    const surgeryEl = document.getElementById('metric-total-surgeries');
+
+    if (amountEl) amountEl.textContent = `৳${totalAmount.toLocaleString()}`;
+    if (donorsEl) donorsEl.textContent = uniqueDonors.size.toString();
+    if (surgeryEl) surgeryEl.textContent = surgeryCount.toString();
+
     let displayList: any[] = [];
 
     if (currentTab === 'ranked') {
-      // Aggregate by donor name
+      // Aggregate by donor name within this month
       const donorMap: Record<string, any> = {};
-      allRawDonations.forEach(d => {
+      filteredDonations.forEach(d => {
         const name = d.donor_name || 'Anonymous Angel';
         if (!donorMap[name]) {
           donorMap[name] = {
@@ -235,7 +316,7 @@ import Icon from '../components/Icon.astro';
 
       displayList = Object.values(donorMap).sort((a, b) => b.totalAmount - a.totalAmount);
     } else if (currentTab === 'recent') {
-      displayList = allRawDonations.map(d => ({
+      displayList = filteredDonations.map(d => ({
         name: d.donor_name || 'Anonymous Angel',
         totalAmount: Number(d.amount || 0),
         donationCount: 1,
@@ -245,7 +326,7 @@ import Icon from '../components/Icon.astro';
         ref: d.transaction_reference
       }));
     } else if (currentTab === 'spay') {
-      const spayDonations = allRawDonations.filter(d => d.donation_mode === 'spay_neuter');
+      const spayDonations = filteredDonations.filter(d => d.donation_mode === 'spay_neuter');
       const donorMap: Record<string, any> = {};
       spayDonations.forEach(d => {
         const name = d.donor_name || 'Anonymous Angel';
@@ -297,7 +378,7 @@ import Icon from '../components/Icon.astro';
             </div>
             <h4 class="text-sm font-black text-stone-900 dark:text-white truncate">${first.name}</h4>
             <div class="text-base font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">৳${first.totalAmount.toLocaleString()}</div>
-            <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-2">Grand Sanctuary Champion</span>
+            <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-2">Monthly Champion</span>
           </div>
         ` : ''}
 
@@ -365,7 +446,7 @@ import Icon from '../components/Icon.astro';
       tbody.innerHTML = `
         <tr>
           <td colspan="6" class="text-center py-8 text-stone-400 text-xs">
-            No donors found matching your search.
+            No donations recorded for this period yet. Be the first to give!
           </td>
         </tr>
       `;
