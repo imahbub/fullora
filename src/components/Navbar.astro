@@ -37,7 +37,10 @@ const { shelterName = "Fullora's Shelter" } = Astro.props;
           <span class="px-1.5 py-0.5 text-[10px] font-bold bg-stone-200/80 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-md">Dogs & Cats</span>
         </a>
         <a href="/#progress" class="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">Impact & Goals</a>
-        <a href="/#heroes" class="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">Wall of Heroes</a>
+        <a href="/leaderboard" class="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
+          <span>Wall of Heroes</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+        </a>
         <a href="/admin" class="hover:text-emerald-700 dark:hover:text-emerald-400 text-stone-400 dark:text-stone-500 transition-colors">Admin</a>
       </nav>
 
@@ -75,7 +78,10 @@ const { shelterName = "Fullora's Shelter" } = Astro.props;
     <a href="/" class="block text-sm font-semibold text-stone-800 dark:text-stone-200 py-1 hover:text-emerald-700">Home</a>
     <a href="/animals" class="block text-sm font-semibold text-stone-800 dark:text-stone-200 py-1 hover:text-emerald-700">Meet Dogs & Cats</a>
     <a href="/#progress" class="block text-sm font-semibold text-stone-800 dark:text-stone-200 py-1 hover:text-emerald-700">Shelter Care Meter</a>
-    <a href="/#heroes" class="block text-sm font-semibold text-stone-800 dark:text-stone-200 py-1 hover:text-emerald-700">Wall of Heroes</a>
+    <a href="/leaderboard" class="block text-sm font-semibold text-stone-800 dark:text-stone-200 py-1 hover:text-emerald-700 flex items-center justify-between">
+      <span>Wall of Heroes (Leaderboard)</span>
+      <span class="text-xs text-amber-600 font-bold">Top Donors</span>
+    </a>
     <a href="/admin" class="block text-sm font-medium text-stone-500 dark:text-stone-400 py-1 hover:text-emerald-700">Admin Control Panel</a>
   </div>
 </header>

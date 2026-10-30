@@ -1,0 +1,376 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Layout title="Wall of Heroes & Leaderboard — Fullora's Shelter">
+
+  <!-- Header Section -->
+  <section class="py-12 sm:py-16 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 mb-3">
+        <Icon name="trophy" class="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+        <span>Community Wall of Heroes</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 dark:text-white tracking-tight">
+        Donor Leaderboard
+      </h1>
+
+      <p class="mt-3 text-xs sm:text-sm text-stone-600 dark:text-stone-400 max-w-xl mx-auto leading-relaxed">
+        Honoring the individuals and anonymous angels whose generosity feeds, heals, and shelters rescued cats and dogs in Bangladesh.
+      </p>
+
+      <!-- Quick Metrics Bar -->
+      <div class="grid grid-cols-3 gap-3 max-w-xl mx-auto mt-8 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/80">
+        <div>
+          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Total Raised</div>
+          <div class="text-base sm:text-lg font-black text-stone-900 dark:text-white mt-0.5" id="metric-total-amount">৳0</div>
+        </div>
+        <div class="border-x border-stone-200 dark:border-stone-700">
+          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Active Donors</div>
+          <div class="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 mt-0.5" id="metric-total-donors">0</div>
+        </div>
+        <div>
+          <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Surgeries Funded</div>
+          <div class="text-base sm:text-lg font-black text-amber-700 dark:text-amber-400 mt-0.5" id="metric-total-surgeries">0</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Main Content & Leaderboard Grid -->
+  <section class="py-12 bg-stone-50 dark:bg-stone-950 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Top 3 Podium Highlights -->
+      <div id="podium-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 items-end">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Controls: Filter Tabs + Search -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+        
+        <div class="flex items-center gap-1.5 p-1 bg-stone-200/60 dark:bg-stone-800/80 rounded-xl text-xs font-semibold">
+          <button 
+            type="button" 
+            onclick="window.setLeaderboardTab('ranked')" 
+            id="tab-btn-ranked"
+            class="px-3.5 py-1.5 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-2xs transition-all"
+          >
+            Top Guardians (Ranked)
+          </button>
+          <button 
+            type="button" 
+            onclick="window.setLeaderboardTab('recent')" 
+            id="tab-btn-recent"
+            class="px-3.5 py-1.5 rounded-lg text-stone-600 dark:text-stone-400 transition-all"
+          >
+            Recent Donations
+          </button>
+          <button 
+            type="button" 
+            onclick="window.setLeaderboardTab('spay')" 
+            id="tab-btn-spay"
+            class="px-3.5 py-1.5 rounded-lg text-stone-600 dark:text-stone-400 transition-all"
+          >
+            Sterilization Champions
+          </button>
+        </div>
+
+        <!-- Search Donor Input -->
+        <div class="relative w-full sm:w-56">
+          <input 
+            type="text" 
+            id="donor-search-input" 
+            placeholder="Search donor name..." 
+            oninput="window.filterDonorsSearch(this.value)"
+            class="w-full px-3 py-1.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs text-stone-900 dark:text-white outline-hidden focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+      </div>
+
+      <!-- Leaderboard List Table -->
+      <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-stone-50 dark:bg-stone-800/60 text-stone-500 uppercase tracking-wider font-semibold border-b border-stone-200 dark:border-stone-800">
+              <tr>
+                <th class="py-3 px-4 w-14 text-center">Rank</th>
+                <th class="py-3 px-4">Guardian / Donor</th>
+                <th class="py-3 px-4">Honorary Badge</th>
+                <th class="py-3 px-4">Primary Cause</th>
+                <th class="py-3 px-4 text-center">Gifts</th>
+                <th class="py-3 px-4 text-right">Total Contributed</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body" class="divide-y divide-stone-100 dark:divide-stone-800">
+              <!-- Populated via client script -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Call to Action Banner -->
+      <div class="mt-10 p-6 rounded-2xl bg-gradient-to-r from-emerald-800 to-teal-800 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div class="space-y-1 text-center sm:text-left">
+          <h3 class="font-bold text-base sm:text-lg">Want to be featured on our Wall of Heroes?</h3>
+          <p class="text-xs text-emerald-100 max-w-md">Every contribution directly buys food, flea medicine, and sterilizations for stray cats and dogs.</p>
+        </div>
+        <button 
+          onclick="window.openDonationModal({ mode: 'once' })"
+          class="shrink-0 px-5 py-2.5 rounded-xl text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5"
+        >
+          <Icon name="heart" class="w-3.5 h-3.5 text-rose-600" />
+          <span>Make a Donation (৳)</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+</Layout>
+
+<script>
+  import { supabase, DEMO_DONATIONS } from '../lib/supabase.js';
+
+  let currentTab = 'ranked';
+  let searchTerm = '';
+  let allRawDonations: any[] = [];
+
+  async function initLeaderboard() {
+    let donations = [...DEMO_DONATIONS];
+
+    try {
+      const local = JSON.parse(localStorage.getItem('fullora_local_donations') || '[]');
+      if (local.length > 0) donations = [...local, ...donations];
+    } catch (e) {}
+
+    try {
+      const { data } = await supabase.from('donations').select('*').order('created_at', { ascending: false });
+      if (data && data.length > 0) {
+        const seen = new Set();
+        const merged = [...data, ...donations].filter(item => {
+          const key = item.id || item.transaction_reference;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        donations = merged;
+      }
+    } catch (e) {}
+
+    allRawDonations = donations;
+    calculateMetrics(donations);
+    renderLeaderboard();
+  }
+
+  function calculateMetrics(donations: any[]) {
+    const totalAmount = donations.reduce((sum, d) => sum + Number(d.amount || 0), 0);
+    const surgeryCount = donations.filter(d => d.donation_mode === 'spay_neuter').length;
+
+    // Unique donor count
+    const names = new Set(donations.map(d => d.donor_name || 'Anonymous'));
+
+    const amountEl = document.getElementById('metric-total-amount');
+    const donorsEl = document.getElementById('metric-total-donors');
+    const surgeryEl = document.getElementById('metric-total-surgeries');
+
+    if (amountEl) amountEl.textContent = `৳${totalAmount.toLocaleString()}`;
+    if (donorsEl) donorsEl.textContent = names.size.toString();
+    if (surgeryEl) surgeryEl.textContent = surgeryCount.toString();
+  }
+
+  window.setLeaderboardTab = function(tab: string) {
+    currentTab = tab;
+    const tabs = ['ranked', 'recent', 'spay'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-btn-${t}`);
+      if (t === tab) {
+        btn?.classList.add('bg-white', 'dark:bg-stone-900', 'text-stone-900', 'dark:text-white', 'shadow-2xs');
+        btn?.classList.remove('text-stone-600', 'dark:text-stone-400');
+      } else {
+        btn?.classList.remove('bg-white', 'dark:bg-stone-900', 'text-stone-900', 'dark:text-white', 'shadow-2xs');
+        btn?.classList.add('text-stone-600', 'dark:text-stone-400');
+      }
+    });
+
+    renderLeaderboard();
+  };
+
+  window.filterDonorsSearch = function(term: string) {
+    searchTerm = term.toLowerCase().trim();
+    renderLeaderboard();
+  };
+
+  function renderLeaderboard() {
+    const tbody = document.getElementById('leaderboard-table-body');
+    const podium = document.getElementById('podium-container');
+    if (!tbody) return;
+
+    let displayList: any[] = [];
+
+    if (currentTab === 'ranked') {
+      // Aggregate by donor name
+      const donorMap: Record<string, any> = {};
+      allRawDonations.forEach(d => {
+        const name = d.donor_name || 'Anonymous Angel';
+        if (!donorMap[name]) {
+          donorMap[name] = {
+            name: name,
+            totalAmount: 0,
+            donationCount: 0,
+            modes: new Set(),
+            isAnonymous: d.is_anonymous,
+            latestDate: d.created_at
+          };
+        }
+        donorMap[name].totalAmount += Number(d.amount || 0);
+        donorMap[name].donationCount += 1;
+        donorMap[name].modes.add(d.donation_mode || 'general');
+      });
+
+      displayList = Object.values(donorMap).sort((a, b) => b.totalAmount - a.totalAmount);
+    } else if (currentTab === 'recent') {
+      displayList = allRawDonations.map(d => ({
+        name: d.donor_name || 'Anonymous Angel',
+        totalAmount: Number(d.amount || 0),
+        donationCount: 1,
+        modes: new Set([d.donation_mode || 'general']),
+        isAnonymous: d.is_anonymous,
+        latestDate: d.created_at,
+        ref: d.transaction_reference
+      }));
+    } else if (currentTab === 'spay') {
+      const spayDonations = allRawDonations.filter(d => d.donation_mode === 'spay_neuter');
+      const donorMap: Record<string, any> = {};
+      spayDonations.forEach(d => {
+        const name = d.donor_name || 'Anonymous Angel';
+        if (!donorMap[name]) {
+          donorMap[name] = {
+            name: name,
+            totalAmount: 0,
+            donationCount: 0,
+            modes: new Set(['spay_neuter']),
+            isAnonymous: d.is_anonymous,
+            latestDate: d.created_at
+          };
+        }
+        donorMap[name].totalAmount += Number(d.amount || 0);
+        donorMap[name].donationCount += 1;
+      });
+      displayList = Object.values(donorMap).sort((a, b) => b.totalAmount - a.totalAmount);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      displayList = displayList.filter(item => item.name.toLowerCase().includes(searchTerm));
+    }
+
+    // Render Podium for Top 3 (if in ranked view and no search)
+    if (podium && currentTab === 'ranked' && !searchTerm && displayList.length >= 2) {
+      const first = displayList[0];
+      const second = displayList[1];
+      const third = displayList[2];
+
+      podium.innerHTML = `
+        <!-- Second Place -->
+        ${second ? `
+          <div class="order-2 md:order-1 p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-center shadow-2xs hover:-translate-y-1 transition-all">
+            <div class="w-10 h-10 mx-auto rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-black text-sm flex items-center justify-center mb-2">
+              #2
+            </div>
+            <h4 class="text-xs font-bold text-stone-900 dark:text-white truncate">${second.name}</h4>
+            <div class="text-sm font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">৳${second.totalAmount.toLocaleString()}</div>
+            <span class="inline-block px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-[10px] text-stone-500 font-semibold mt-2">Silver Guardian</span>
+          </div>
+        ` : ''}
+
+        <!-- First Place (Champion) -->
+        ${first ? `
+          <div class="order-1 md:order-2 p-6 rounded-2xl bg-white dark:bg-stone-900 border-2 border-amber-500/60 text-center shadow-xs hover:-translate-y-1 transition-all relative">
+            <div class="w-12 h-12 mx-auto rounded-full bg-amber-500 text-stone-950 font-black text-base flex items-center justify-center mb-2 shadow-sm">
+              👑 #1
+            </div>
+            <h4 class="text-sm font-black text-stone-900 dark:text-white truncate">${first.name}</h4>
+            <div class="text-base font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">৳${first.totalAmount.toLocaleString()}</div>
+            <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-2">Grand Sanctuary Champion</span>
+          </div>
+        ` : ''}
+
+        <!-- Third Place -->
+        ${third ? `
+          <div class="order-3 md:order-3 p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-center shadow-2xs hover:-translate-y-1 transition-all">
+            <div class="w-10 h-10 mx-auto rounded-full bg-amber-900/10 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 font-black text-sm flex items-center justify-center mb-2">
+              #3
+            </div>
+            <h4 class="text-xs font-bold text-stone-900 dark:text-white truncate">${third.name}</h4>
+            <div class="text-sm font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">৳${third.totalAmount.toLocaleString()}</div>
+            <span class="inline-block px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-[10px] text-stone-500 font-semibold mt-2">Bronze Guardian</span>
+          </div>
+        ` : ''}
+      `;
+      podium.classList.remove('hidden');
+    } else if (podium) {
+      podium.classList.add('hidden');
+    }
+
+    // Render Table Rows
+    tbody.innerHTML = displayList.map((item, index) => {
+      let badge = 'Paw Protector';
+      if (item.totalAmount >= 3000) badge = 'Grand Guardian';
+      else if (item.modes.has('spay_neuter')) badge = 'Life Changer';
+      else if (item.isAnonymous) badge = 'Secret Benefactor';
+
+      const causeLabel = item.modes.has('spay_neuter') ? 'Spay / Neuter' : (item.modes.has('sponsor') ? 'Animal Sponsor' : 'General Care');
+
+      return `
+        <tr class="hover:bg-stone-50/50 dark:hover:bg-stone-800/40 transition-colors">
+          <td class="py-3 px-4 text-center font-bold ${index === 0 ? 'text-amber-600' : (index === 1 ? 'text-stone-500' : (index === 2 ? 'text-amber-800 dark:text-amber-400' : 'text-stone-400'))}">
+            #${index + 1}
+          </td>
+          <td class="py-3 px-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold text-xs flex items-center justify-center shrink-0">
+                ${item.isAnonymous ? 'PAW' : item.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <span class="font-bold text-stone-900 dark:text-white text-xs block">${item.name}</span>
+                <span class="text-[10px] text-stone-400">${item.latestDate ? new Date(item.latestDate).toLocaleDateString() : ''}</span>
+              </div>
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-[10px] font-semibold">
+              ${badge}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-stone-500 text-[11px] capitalize">
+            ${causeLabel}
+          </td>
+          <td class="py-3 px-4 text-center font-semibold text-stone-600 dark:text-stone-400">
+            ${item.donationCount}
+          </td>
+          <td class="py-3 px-4 text-right font-black text-emerald-700 dark:text-emerald-400 font-mono text-xs">
+            ৳${item.totalAmount.toLocaleString()}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (displayList.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-8 text-stone-400 text-xs">
+            No donors found matching your search.
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  initLeaderboard();
+</script>
